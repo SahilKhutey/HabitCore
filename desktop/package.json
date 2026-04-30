@@ -1,0 +1,21 @@
+{
+  "name": "habitcore-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "package-win": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.habitcore.desktop",
+    "productName": "HabitCore",
+    "win": {
+      "target": ["nsis", "appx"]
+    }
+  }
+}

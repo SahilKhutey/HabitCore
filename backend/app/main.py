@@ -1,3 +1,5 @@
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics
 from app.db.session import engine
 from app.db.base import Base
@@ -7,6 +9,14 @@ from app.services.websocket_service import manager
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def startup_event():
