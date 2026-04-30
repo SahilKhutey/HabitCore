@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+python-jose
+passlib[bcrypt]
+python-dotenv
+firebase-admin
+apscheduler
