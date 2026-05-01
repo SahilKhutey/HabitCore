@@ -10,23 +10,21 @@ import Animated, {
 import { COLORS } from '../theme/theme';
 import { FloatingXP } from './FloatingXP';
 
+import { useHaptics } from '../hooks/useHaptics';
+import { Habit } from '../types/habit';
+
 interface HabitCardProps {
-  item: {
-    id: string;
-    title: string;
-    done: boolean;
-    name?: string;
-    streak?: { current_streak: number };
-    difficulty?: string;
-  };
+  item: Habit;
   onComplete: (id: string) => void;
-  onEdit?: (item: any) => void;
+  onEdit?: (item: Habit) => void;
   onDelete?: (id: string) => void;
-  onViewDetail?: (item: any) => void;
+  onViewDetail?: (item: Habit) => void;
 }
+
 
 export const HabitCard: React.FC<HabitCardProps> = ({ item, onComplete, onEdit, onDelete, onViewDetail }) => {
   const [showXP, setShowXP] = useState(false);
+  const { trigger } = useHaptics();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -36,12 +34,17 @@ export const HabitCard: React.FC<HabitCardProps> = ({ item, onComplete, onEdit, 
 
   const handlePress = () => {
     if (item.done) return;
+    
+    // Tactile Feedback
+    trigger('success');
+
     scale.value = withTiming(0.95, { duration: 100 }, () => {
       scale.value = withTiming(1);
     });
     setShowXP(true);
     onComplete(item.id);
   };
+
 
   const handleLongPress = () => {
     Alert.alert("Manage Habit", `What would you like to do with "${item.title || item.name}"?`, [
@@ -88,11 +91,11 @@ export const HabitCard: React.FC<HabitCardProps> = ({ item, onComplete, onEdit, 
           activeOpacity={0.7}
         >
           <View style={styles.streakBadge}>
-            <Flame size={14} color={item.done ? "#00ffcc" : "#ff5500"} />
-            <Text style={[styles.streakText, { color: item.done ? "#00ffcc" : "#ff5500" }]}>
+            <Flame size={14} color={item.done ? COLORS.primary : COLORS.accent} />
+            <Text style={[styles.streakText, { color: item.done ? COLORS.primary : COLORS.accent }]}>
               {item.streak?.current_streak || 0}
             </Text>
-            <Info size={14} color="#444" style={{ marginLeft: 8 }} />
+            <Info size={14} color={COLORS.surfaceLight} style={{ marginLeft: 8 }} />
           </View>
         </TouchableOpacity>
       </View>
@@ -104,12 +107,17 @@ export const HabitCard: React.FC<HabitCardProps> = ({ item, onComplete, onEdit, 
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#111",
+    backgroundColor: COLORS.surface,
     padding: 16,
-    borderRadius: 16,
-    marginBottom: 10,
+    borderRadius: 20,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: COLORS.glassBorder,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   content: {
     flexDirection: 'row',
@@ -125,46 +133,48 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
   },
   checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#333',
-    marginRight: 12,
+    borderColor: COLORS.surfaceLight,
+    marginRight: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   checkboxActive: {
-    borderColor: '#00ffcc',
-    backgroundColor: 'rgba(0, 255, 204, 0.1)',
+    borderColor: COLORS.primary,
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
   },
   cardText: {
-    color: "#fff",
+    color: COLORS.text,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     flex: 1,
   },
   completedTitle: {
-    color: '#444',
+    color: COLORS.textSecondary,
     textDecorationLine: 'line-through',
+    opacity: 0.6,
   },
   streakBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.03)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
   },
   streakText: {
-    fontSize: 12,
-    fontWeight: '800',
-    marginLeft: 4,
+    fontSize: 14,
+    fontWeight: '900',
+    marginLeft: 6,
   },
   diffDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 6,
   }
 });

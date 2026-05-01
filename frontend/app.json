@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "HabitCore",
-    "slug": "habit-core",
+    "name": "HabitHero",
+    "slug": "habit-hero",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,31 +11,38 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.habitcore.app"
+      "bundleIdentifier": "com.habithero.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.habitcore.app",
+      "package": "com.habithero.app",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "display": "standalone",
+      "themeColor": "#FF3B30",
+      "backgroundColor": "#000000",
+      "description": "The ultimate behavioral intelligence habit tracker."
     },
     "plugins": [
       "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "APP_ENV": "development"
     }
   }
 }

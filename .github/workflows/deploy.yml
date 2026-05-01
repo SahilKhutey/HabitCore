@@ -1,0 +1,37 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Backend to Staging
+        run: |
+          echo "Deploying backend to staging instance..."
+          # Example for Render/Railway CLI
+          # curl -X POST ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+      - name: Deploy Admin Dashboard to Staging
+        run: |
+          echo "Deploying admin dashboard to staging URL (Vercel/Netlify)..."
+          # npx vercel --token ${{ secrets.VERCEL_TOKEN }} --name habitcore-admin-staging
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Backend to Production
+        run: |
+          echo "Deploying backend to production instance..."
+          # curl -X POST ${{ secrets.RENDER_PROD_DEPLOY_HOOK }}
+      - name: Deploy Admin Dashboard to Production
+        run: |
+          echo "Deploying admin dashboard to production URL..."
+          # npx vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --name habitcore-admin

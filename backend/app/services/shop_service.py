@@ -1,32 +1,42 @@
-from sqlalchemy.orm import Session
-from app.models.user import User
-
-SHOP_ITEMS = {
-    "streak_freeze": {"price": 100, "name": "Streak Freeze"},
-    "premium_theme": {"price": 500, "name": "Premium Theme"}
-}
+from app.models.shop import ShopItem, UserInventory
 
 class ShopService:
     @staticmethod
-    def buy_item(db: Session, user_id: str, item_id: str):
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            return {"error": "User not found"}
-            
-        item = SHOP_ITEMS.get(item_id)
+    def get_items(db: Session):
+        return db.query(ShopItem).all()
+
+    @staticmethod
+    def buy_item(db: Session, user: User, item_id: str):
+        item = db.query(ShopItem).filter(ShopItem.id == item_id).first()
         if not item:
             return {"error": "Item not found"}
             
-        if user.coins < item["price"]:
+        if user.coins < item.cost:
             return {"error": "Not enough coins"}
             
-        user.coins -= item["price"]
+        if user.level < item.unlock_level:
+            return {"error": f"Requires Level {item.unlock_level}"}
+
+        # Check if already owned
+        existing = db.query(UserInventory).filter(
+            UserInventory.user_id == user.id,
+            UserInventory.item_id == item.id
+        ).first()
         
-        if item_id == "streak_freeze":
-            user.streak_freezes += 1
-        elif item_id == "premium_theme":
-            # Logic for unlocking themes (e.g., adding to a many-to-many table)
-            pass
+        if existing:
+            return {"error": "Already owned"}
+            
+        user.coins -= item.cost
+        
+        inventory_item = UserInventory(
+            user_id=user.id,
+            item_id=item.id
+        )
+        db.add(inventory_item)
+        
+        # Special logic for consumables
+        if item.category == "booster" and item.name == "Streak Freeze":
+            user.streak_freeze += 1
             
         db.commit()
-        return {"message": f"Successfully purchased {item['name']}", "coins": user.coins}
+        return {"message": f"Successfully purchased {item.name}", "coins": user.coins}

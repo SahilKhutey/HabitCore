@@ -26,4 +26,10 @@ def get_current_user(token: str, db: Session):
     return user
 
 def auth_required(authorization: str = Header(...), db: Session = Depends(get_db)):
-    return get_current_user(authorization, db)
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication scheme. Expected 'Bearer <token>'"
+        )
+    token = authorization.replace("Bearer ", "")
+    return get_current_user(token, db)

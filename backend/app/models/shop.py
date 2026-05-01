@@ -9,6 +9,7 @@ class ShopItem(Base):
     name = Column(String, unique=True)
     category = Column(String) # theme, powerup, booster
     cost = Column(Integer)
+    unlock_level = Column(Integer, default=1)
     description = Column(String)
 
 class UserInventory(Base):

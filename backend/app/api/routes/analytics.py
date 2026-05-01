@@ -7,7 +7,17 @@ from app.models.habit_log import HabitLog
 from app.models.habit import Habit
 from app.models.user import User
 
+from app.services.analytics_service import AnalyticsService
+
 router = APIRouter()
+
+@router.get("/pulse")
+def get_identity_pulse(user=Depends(auth_required), db: Session = Depends(get_db)):
+    """
+    Returns the user's behavioral alignment with their identity goal.
+    """
+    return AnalyticsService.get_identity_pulse(db, user.id)
+
 
 @router.get("/weekly")
 def get_weekly_report(user=Depends(auth_required), db: Session = Depends(get_db)):

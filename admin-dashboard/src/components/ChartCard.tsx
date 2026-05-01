@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ChartCardProps {
   title: string;
@@ -8,14 +8,14 @@ interface ChartCardProps {
 export default function ChartCard({ title, children }: ChartCardProps) {
   return (
     <div style={{
-      background: "#111",
+      background: "#ffffff",
       padding: "24px",
-      borderRadius: "16px",
-      color: "#fff",
-      marginTop: 24,
-      border: "1px solid rgba(255,255,255,0.05)"
+      borderRadius: "12px",
+      border: "1px solid #e5e7eb",
+      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+      marginTop: 24
     }}>
-      <h3 style={{ marginTop: 0, marginBottom: 20, color: "rgba(255,255,255,0.8)" }}>{title}</h3>
+      <h3 style={{ margin: "0 0 24px 0", fontSize: "18px", fontWeight: "600", color: "#111827" }}>{title}</h3>
       {children}
     </div>
   );

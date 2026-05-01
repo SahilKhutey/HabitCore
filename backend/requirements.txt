@@ -8,3 +8,6 @@ passlib[bcrypt]
 python-dotenv
 firebase-admin
 apscheduler
+pydantic-settings
+python-json-logger
+numpy

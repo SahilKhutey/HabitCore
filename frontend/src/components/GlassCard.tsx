@@ -1,37 +1,38 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, Platform } from 'react-native';
+import { View, StyleSheet, ViewProps } from 'react-native';
 import { COLORS, SPACING } from '../theme/theme';
 
-interface GlassCardProps {
+interface GlassCardProps extends ViewProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  variant?: 'default' | 'highlighted';
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({ children, style }) => {
+export function GlassCard({ children, variant = 'default', style, ...props }: GlassCardProps) {
   return (
-    <View style={[styles.card, style]}>
+    <View
+      style={[
+        styles.card,
+        variant === 'highlighted' && styles.highlighted,
+        style
+      ]}
+      {...props}
+    >
       {children}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.glass,
+    backgroundColor: COLORS.card,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.glassBorder,
     padding: SPACING.md,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
   },
+  highlighted: {
+    borderColor: COLORS.primary,
+    backgroundColor: 'rgba(0, 255, 204, 0.1)',
+  }
 });

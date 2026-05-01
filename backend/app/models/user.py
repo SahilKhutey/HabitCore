@@ -1,6 +1,8 @@
-from sqlalchemy import Column, String, Integer, Boolean
+from sqlalchemy import Column, String, Integer, Boolean, DateTime
 from app.db.base import Base
 import uuid
+from datetime import datetime, timezone
+
 
 class User(Base):
     __tablename__ = "users"
@@ -13,12 +15,14 @@ class User(Base):
     is_premium = Column(Boolean, default=False)
     followers = Column(Integer, default=0)
     coins = Column(Integer, default=0)
-    streak_freezes = Column(Integer, default=0)
+    streak_freeze = Column(Integer, default=1)
     referral_code = Column(String, unique=True)
     last_active_hour = Column(Integer, default=9)
     paywall_variant = Column(String, default="A")
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    social_id = Column(String, index=True, nullable=True)
+    provider = Column(String, default="email") # email, google, apple
     
     # Customization & Mode
     mode = Column(String, default="Consistency") # Speed, Consistency, Competitive, Minimal
@@ -26,4 +30,9 @@ class User(Base):
     engagement_level = Column(String, default="Balanced") # Chill, Balanced, Intense
     reward_type = Column(String, default="visual") # visual, coins, competitive
     identity_goal = Column(String, default="Productive") # Fit, Learner, Productive, Calm
+    identity_level = Column(String, default="beginner") # beginner, builder, disciplined, elite
+    archetype = Column(String, nullable=True) # warrior, monk, achiever, explorer
     daily_habit_goal = Column(Integer, default=3)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+

@@ -1,29 +1,39 @@
-import React from 'react';
+import React from "react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon?: React.ReactNode;
+  icon: React.ReactNode;
 }
 
 export default function StatCard({ title, value, icon }: StatCardProps) {
   return (
     <div style={{
-      background: "#111",
-      padding: "24px",
-      borderRadius: "16px",
-      color: "#fff",
       flex: 1,
-      border: "1px solid rgba(255,255,255,0.05)",
+      background: "#ffffff",
+      padding: "24px",
+      borderRadius: "12px",
+      border: "1px solid #e5e7eb",
+      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
       display: "flex",
-      flexDirection: "column",
-      gap: 8
+      alignItems: "center",
+      justifyContent: "space-between"
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h4 style={{ margin: 0, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>{title}</h4>
+      <div>
+        <p style={{ color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>{title}</p>
+        <h2 style={{ fontSize: "36px", margin: 0, fontWeight: "700", color: "#111827" }}>{value}</h2>
+      </div>
+      <div style={{ 
+        width: 48, 
+        height: 48, 
+        borderRadius: "12px", 
+        background: "#f3f4f6", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center" 
+      }}>
         {icon}
       </div>
-      <h2 style={{ margin: 0, fontSize: "32px", fontWeight: "700", color: "#00ffcc" }}>{value}</h2>
     </div>
   );
 }

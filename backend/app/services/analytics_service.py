@@ -21,8 +21,58 @@ class AnalyticsService:
             "metadata": metadata,
             "created_at": str(event.created_at)
         }
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.create_task(manager.broadcast(event_data))
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(manager.broadcast(event_data))
+        except RuntimeError:
+            # Called from a thread without an event loop
+            pass
 
-        return event
+    @staticmethod
+    def get_identity_pulse(db: Session, user_id: str):
+        """
+        Calculates how aligned a user's recent actions are with their stated identity goal.
+        Deep analysis of habit categories vs. identity mapping.
+        """
+        from app.models.user import User
+        from app.models.habit import Habit
+        from app.models.habit_log import HabitLog
+        from datetime import datetime, timedelta
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return {}
+
+        # 1. Fetch completions from last 30 days
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        completions = db.query(HabitLog, Habit).join(Habit, HabitLog.habit_id == Habit.id).filter(
+            Habit.user_id == user_id,
+            HabitLog.completed_at >= thirty_days_ago
+        ).all()
+
+        # 2. Score based on identity goal
+        from app.core.constants import IDENTITY_WEIGHTS
+        
+        target_categories = IDENTITY_WEIGHTS.get(user.identity_goal, [])
+
+        score = 0
+        total = len(completions)
+        
+        if total == 0:
+            return {"score": 0, "status": "Inactive"}
+
+        for log, habit in completions:
+            # We check if the habit name contains a target category keyword
+            if any(cat.lower() in habit.name.lower() for cat in target_categories):
+                score += 1
+
+        pulse_percentage = (score / total) * 100
+        
+        return {
+            "score": int(pulse_percentage),
+            "goal": user.identity_goal,
+            "total_completions": total,
+            "status": "Aligned" if pulse_percentage > 70 else "Wandering"
+        }
+

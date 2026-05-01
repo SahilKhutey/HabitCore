@@ -1,7 +1,9 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.notification_service import send_push
 from app.db.session import SessionLocal
-from app.models.habit import Habit, HabitLog
+from app.models.habit import Habit
+from app.models.habit_log import HabitLog
+
 from app.models.user import User
 from datetime import date, timedelta, datetime
 

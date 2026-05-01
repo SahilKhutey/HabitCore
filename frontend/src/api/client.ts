@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:8000";
+import ENV from '../config/env';
+
+const API_URL = ENV.API_URL;
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -7,7 +9,7 @@ export const api = async (endpoint: string, method: Method = "GET", body: any = 
     method,
     headers: {
       "Content-Type": "application/json",
-      ...(token && { "Authorization": token }),
+      ...(token && { "Authorization": `Bearer ${token}` }),
     },
     body: body ? JSON.stringify(body) : null,
   }).then(async res => {
@@ -59,6 +61,11 @@ export const getRecommendations = async (token: string) => {
   return api("/analytics/recommendations", "GET", null, token);
 };
 
+export const getIdentityPulse = async (token: string) => {
+  return api("/analytics/pulse", "GET", null, token);
+};
+
+
 export const getSmartTime = async (habitId: string, token: string) => {
   return api(`/habits/${habitId}/smart-time`, "GET", null, token);
 };
@@ -77,4 +84,39 @@ export const getShopItems = async () => {
 
 export const buyShopItem = async (itemId: string, token: string) => {
   return api(`/shop/buy/${itemId}`, "POST", null, token);
+};
+
+export const useFreeze = async (habitId: string, token: string) => {
+  return api(`/habits/${habitId}/freeze`, "POST", null, token);
+};
+
+export const getBurnout = async (token: string) => {
+  return api("/users/burnout", "GET", null, token);
+};
+
+export const getMyBadges = async (token: string) => {
+  return api("/users/badges", "GET", null, token);
+};
+
+export const getInventory = async (token: string) => {
+  return api("/users/inventory", "GET", null, token);
+};
+
+export const updatePreferences = async (data: any, token: string) => {
+  return api("/users/preferences", "PUT", data, token);
+};
+export const equipItem = async (inventoryId: string, token: string) => {
+  return api(`/shop/equip/${inventoryId}`, "POST", null, token);
+};
+
+export const dailyCheckin = async (data: any, token: string) => {
+  return api("/psychological/checkin", "POST", data, token);
+};
+
+export const getDailyChallenge = async () => {
+  return api("/psychological/daily-challenge", "GET");
+};
+
+export const getUserProgress = async (token: string) => {
+  return api("/psychological/user-progress", "GET", null, token);
 };

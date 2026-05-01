@@ -1,40 +1,33 @@
-import razorpay
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, auth_required
-from app.models.user import User
-import os
+from app.services.payment_orchestrator import PaymentOrchestrator
 
 router = APIRouter()
 
-# Use env variables in production
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_placeholder")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "secret_placeholder")
-
-client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-
-@router.post("/create-order")
-def create_order(user=Depends(auth_required)):
-    # ₹999.00 subscription
-    order_data = {
-        "amount": 99900,
-        "currency": "INR",
-        "payment_capture": 1
-    }
-    order = client.order.create(data=order_data)
-    return order
-
-@router.post("/verify-payment")
-def verify_payment(data: dict, user=Depends(auth_required), db: Session = Depends(get_db)):
+@router.post("/create-intent")
+def create_payment_intent(plan_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):
+    """
+    Creates a payment intent for a specific premium plan.
+    """
     try:
-        # data contains razorpay_order_id, razorpay_payment_id, razorpay_signature
-        client.utility.verify_payment_signature(data)
-        
-        # Update user to premium
-        target_user = db.query(User).filter(User.id == user.id).first()
-        target_user.is_premium = True
-        db.commit()
-
-        return {"status": "success", "message": "Premium unlocked!"}
+        return PaymentOrchestrator.create_intent(user, plan_id)
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Payment verification failed")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/webhook")
+async def stripe_webhook(request: Request, stripe_signature: str = Header(None), db: Session = Depends(get_db)):
+    """
+    Stripe webhook endpoint to handle payment successes.
+    """
+    payload = await request.body()
+    if not stripe_signature:
+        raise HTTPException(status_code=400, detail="Missing signature")
+        
+    success = PaymentOrchestrator.handle_webhook(db, payload, stripe_signature)
+    if success:
+        return {"status": "success"}
+    
+    # We return 200 even on failure to acknowledge receipt to Stripe, 
+    # but we log the error or return a specific message for debugging.
+    return {"status": "event_ignored"}

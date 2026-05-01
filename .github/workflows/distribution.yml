@@ -1,0 +1,59 @@
+name: Distribution
+
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    tags:
+      - 'v*' # Trigger on version tags
+
+jobs:
+  build-web:
+    name: Build PWA (Web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node_version: 18
+          cache: 'npm'
+          cache-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+      - name: Build Web
+        run: |
+          cd frontend
+          npm run build:web
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwa-build
+          path: frontend/dist
+
+  build-mobile:
+    name: Build Mobile (Android & iOS)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [android, ios]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node_version: 18
+          cache: 'npm'
+          cache-path: frontend/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+      - name: Build on EAS
+        run: |
+          cd frontend
+          eas build --platform ${{ matrix.platform }} --profile production --non-interactive

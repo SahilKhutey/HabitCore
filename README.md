@@ -1,63 +1,49 @@
-# HabitCore 🧬
+# HabitHero 🧬
 
-**The Elite "Habit-First" Behavioral Ecosystem**
+**The Elite Cross-Platform Behavioral Ecosystem**
 
-HabitCore is a production-grade, high-performance habit tracking platform designed to prioritize momentum and long-term consistency. Built with a "Habit-First" philosophy, it strips away gamification clutter to focus on what matters: **frictionless completion and behavioral growth.**
+HabitHero is a production-grade, high-performance habit tracking platform designed to prioritize momentum and long-term consistency. Built with a "One Codebase" philosophy, it targets Android, iOS, and Web (PWA) with 90% shared logic.
 
 ## 🚀 Key Features
 
-### 🧠 The Intelligence Layer
-- **Smart Reminders**: Dynamically calculates the optimal notification time based on your historical completion patterns.
-- **Adaptive Difficulty Scaling**: A self-adjusting "Coach" system that suggests leveling up when you're consistent or scaling back to prevent burnout.
-- **Behavioral Insights**: Smart analysis of your routine (e.g., "You perform best at night") provided as actionable feedback.
+### 🧠 Behavioral Intelligence
+- **User Guardian**: Unified health monitoring that detects burnout and applies "Streak Freezes" to protect your momentum.
+- **Habit Engine**: A deep, high-leverage core that orchestrates streaks, gamification, and adaptive difficulty.
+- **Identity Orchestrator**: Seamless, unified authentication across all platforms (Email, Apple, Google).
 
-### 🔥 Momentum-First UX
-- **1-Tap Completion**: Zero-friction habit logging with satisfying haptic feedback and bounce animations.
-- **Micro-Reward Loop**: Non-intrusive Floating XP system for immediate positive reinforcement without distracting from the task.
-- **Visual Memory**: GitHub-style consistency grids and yearly heatmaps to visualize your long-term transformation.
+### 🔥 Distribution & Reach
+- **Android & iOS**: Native performance via React Native (Expo) and EAS.
+- **Web & Windows**: High-performance PWA optimized for the Microsoft Store and web-based payments.
+- **Stripe Integration**: Secure, web-based premium upgrades for a frictionless monetization loop.
 
-### 📈 Retention & Growth
-- **Robust Streak Engine**: Handles edge cases (late-night usage, missed days) to keep your momentum alive.
-- **Viral Share Loop**: Integrated social sharing to celebrate streaks and drive community growth.
-- **Global Leaderboard**: Competitive weekly rankings based on total habit completions.
+### 📈 Gamification (Hall of Heroes)
+- **Premium Progression**: Exclusive badges and global leaderboards for premium users.
+- **Heroic Milestones**: Automated achievement evaluation integrated directly into the habit loop.
 
 ## 🛠️ Technology Stack
 
-### Frontend (React Native + Expo)
-- **State Management**: Zustand (`useUserStore`) for global profile and preferences.
-- **Data Fetching**: TanStack Query (React Query) for robust server-side synchronization.
-- **Animations**: React Native Reanimated for high-performance, fluid UI interactions.
-- **Notifications**: Expo Notifications for the smart reminder system.
-- **Icons**: Lucide-React-Native for a clean, professional aesthetic.
+### One Codebase (React Native + Expo)
+- **Platforms**: Android (Play Store), iOS (App Store), Web (PWA / Microsoft Store).
+- **State**: Zustand for global profile management.
+- **Payments**: Stripe (Web) for premium subscriptions.
 
-### Backend (FastAPI + SQLAlchemy)
-- **Database**: SQL-driven logic for complex analytics and completion logging.
-- **Authentication**: Secure JWT-based auth with user-specific data isolation.
-- **Analytics Engine**: Advanced algorithms for streak calculation, completion rates, and smart-time detection.
-- **Task Scheduling**: Integrated scheduler for daily resets and notification triggers.
+### Deep Backend (FastAPI + SQLAlchemy)
+- **Orchestration**: Deep services for Identity, Payments, and Behavioral Intelligence.
+- **Verification**: TDD-first approach with automated GitHub Actions CI/CD.
 
 ## 📦 Getting Started
 
 ### Prerequisites
 - Node.js & npm
 - Python 3.9+
-- Expo CLI
+- Expo CLI & EAS CLI
 
-### Frontend Setup
-1. `cd frontend`
-2. `npm install`
-3. `npx expo start`
-
-### Backend Setup
-1. `cd backend`
-2. `pip install -r requirements.txt`
-3. `uvicorn app.main:app --reload`
-
-## 🎨 Design Philosophy
-- **Dark Mode Default**: Sleek `#000` background with vibrant `#00ffcc` accents.
-- **High Clarity**: Minimal text, high-impact iconography.
-- **Frictionless**: Every primary action is reachable within a single tap.
+### Build & Deploy
+- **Web**: `npm run build:web`
+- **Android**: `eas build --platform android`
+- **iOS**: `eas build --platform ios`
 
 ---
 
 Built by **Antigravity** with a focus on Behavioral Science and Elite Engineering.
+

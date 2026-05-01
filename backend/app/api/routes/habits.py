@@ -9,8 +9,9 @@ import uuid
 from app.api.deps import get_db, auth_required
 from app.models.habit import Habit
 from app.models.habit_log import HabitLog
-from app.services.gamification_service import calculate_xp_reward, calculate_level, calculate_coin_reward
+from app.services.gamification_service import calculate_xp_reward, calculate_level_data, calculate_coin_reward
 from app.services.habit_service import calculate_streak, adjust_habit_difficulty
+from app.services.habit_engine import HabitEngine
 from app.services.analytics_service import AnalyticsService
 
 router = APIRouter()
@@ -67,35 +68,13 @@ def get_today_status(user=Depends(auth_required), db: Session = Depends(get_db))
 
 @router.post("/complete")
 def complete_habit(habit_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):
-    today = date.today()
-    existing = db.query(HabitLog).filter(HabitLog.habit_id == habit_id, HabitLog.date == today).first()
-    if existing: return {"message": "Already completed today"}
-
-    habit = db.query(Habit).filter(Habit.id == habit_id).first()
-    if not habit: raise HTTPException(404, "Habit not found")
-
-    log = HabitLog(habit_id=habit_id, date=today)
-    db.add(log)
-    
-    logs = db.query(HabitLog).filter(HabitLog.habit_id == habit_id).all()
-    streak = calculate_streak(logs)
-
-    xp_gain, lucky_bonus = calculate_xp_reward(streak, habit.difficulty, user.mode)
-    coin_gain = calculate_coin_reward(streak)
-    
-    user.xp += (xp_gain + lucky_bonus)
-    user.coins += coin_gain
-    user.level = calculate_level(user.xp)
-
-    db.commit()
-    return {
-        "status": "completed",
-        "streak": streak,
-        "xp": user.xp,
-        "level": user.level,
-        "xp_gained": xp_gain,
-        "coins_gained": coin_gain
-    }
+    try:
+        result = HabitEngine.complete(db, habit_id, user)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.get("/{habit_id}/history")
 def get_habit_history(habit_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):
@@ -153,6 +132,15 @@ def set_difficulty(habit_id: str, level: str, user=Depends(auth_required), db: S
     habit.difficulty = level
     db.commit()
     return habit
+
+from app.services.user_guardian import UserGuardian
+
+@router.post("/{habit_id}/freeze")
+def use_freeze(habit_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):
+    if UserGuardian.apply_freeze(db, user, habit_id):
+        return {"status": "streak saved", "remaining_freezes": user.streak_freeze}
+
+    return {"status": "not needed or no freeze"}
 
 @router.get("/{user_id}")
 def get_user_habits(user_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):

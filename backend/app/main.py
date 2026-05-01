@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics
+from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, habit_routes, avatar_routes
 from app.db.session import engine
 from app.db.base import Base
 from app.scheduler import scheduler
@@ -12,15 +12,34 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:8081",
+        "http://localhost:5173",
+        "http://127.0.0.1:8081",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+from app.services.nudge_engine import NudgeEngine
+from app.db.session import SessionLocal
+
 @app.on_event("startup")
 def startup_event():
     scheduler.start()
+    
+    # Nudge Engine: Run every 6 hours to identify sliding users
+    @scheduler.scheduled_job("interval", hours=6)
+    def run_nudges():
+        db = SessionLocal()
+        try:
+            count = NudgeEngine.process_nudges(db)
+            print(f"Nudge Engine: Sent {count} identity nudges.")
+        finally:
+            db.close()
+
 
 app.include_router(auth.router, prefix="/auth")
 app.include_router(habits.router, prefix="/habits")
@@ -31,6 +50,10 @@ app.include_router(admin.router, prefix="/admin")
 app.include_router(preferences.router, prefix="/preferences")
 app.include_router(shop.router, prefix="/shop")
 app.include_router(analytics.router, prefix="/analytics")
+app.include_router(gamification.router, prefix="/gamification")
+app.include_router(psychological.router, prefix="/psychological")
+app.include_router(habit_routes.router, prefix="/api/habit", tags=["habit"])
+app.include_router(avatar_routes.router, prefix="/api/avatar", tags=["avatar"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

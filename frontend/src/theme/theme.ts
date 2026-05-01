@@ -1,18 +1,21 @@
 export const COLORS = {
-  background: '#0D0D0D',
-  surface: '#1A1A1A',
-  surfaceLight: '#2A2A2A',
-  primary: '#8B5CF6', // Purple
-  secondary: '#10B981', // Green
-  accent: '#F59E0B', // Amber
-  neonGreen: '#00FFCC',
-  neonPurple: '#BF40BF',
-  gold: '#FFD700',
-  text: '#FFFFFF',
-  textSecondary: '#A1A1AA',
-  error: '#EF4444',
-  glass: 'rgba(255, 255, 255, 0.05)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  // Core palette
+  bg: "#0B0F1A",
+  card: "rgba(255, 255, 255, 0.05)",
+  primary: "#00FFCC",
+  secondary: "#8B5CF6",
+  accent: "#F59E0B",
+  text: "#E5E7EB",
+  textSecondary: "#9CA3AF",
+  danger: "#EF4444",
+  success: "#10B981",
+  
+  // Gradients
+  primaryGradient: ["#00FFCC", "#8B5CF6"],
+  
+  // UI States
+  border: "rgba(255, 255, 255, 0.1)",
+  glassBorder: "rgba(255, 255, 255, 0.2)",
 };
 
 export const SPACING = {
@@ -26,20 +29,23 @@ export const SPACING = {
 export const TYPOGRAPHY = {
   h1: {
     fontSize: 32,
-    fontWeight: '700' as const,
+    fontWeight: '800' as const,
     color: COLORS.text,
+    letterSpacing: -0.5,
   },
   h2: {
     fontSize: 24,
-    fontWeight: '600' as const,
+    fontWeight: '700' as const,
     color: COLORS.text,
   },
   body: {
     fontSize: 16,
+    fontWeight: '400' as const,
     color: COLORS.text,
   },
   caption: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '500' as const,
     color: COLORS.textSecondary,
   },
 };

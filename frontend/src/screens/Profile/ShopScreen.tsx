@@ -5,18 +5,24 @@ import { COLORS, SPACING, TYPOGRAPHY } from '../../theme/theme';
 import { useUserStore } from '../../store/useUserStore';
 import { api, buyShopItem } from '../../api/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Gem, Snowflake, Palette } from 'lucide-react-native';
+import { Gem, Snowflake, Palette, Lock } from 'lucide-react-native';
 
 const SHOP_ITEMS = [
-  { id: 'streak_freeze', name: 'Streak Freeze', price: 100, icon: <Snowflake color={COLORS.accent} />, description: 'Prevents your streak from breaking for one day.' },
-  { id: 'premium_theme', name: 'Premium Theme', price: 500, icon: <Palette color={COLORS.primary} />, description: 'Unlocks the "Cyberpunk" premium theme.' },
+  { id: 'streak_freeze', name: 'Streak Freeze', price: 100, level: 1, icon: <Snowflake color={COLORS.accent} />, description: 'Prevents your streak from breaking for one day.' },
+  { id: 'neon_theme', name: 'Neon Glow Theme', price: 300, level: 3, icon: <Palette color={COLORS.primary} />, description: 'Unlocks a high-contrast vibrant theme.' },
+  { id: 'premium_theme', name: 'Cyberpunk Theme', price: 500, level: 5, icon: <Palette color={COLORS.secondary} />, description: 'Unlocks the ultra-premium dark aesthetic.' },
 ];
 
 export default function ShopScreen() {
   const { coins, id, token, paywall_variant } = useUserStore();
   const queryClient = useQueryClient();
 
-  const handleBuy = async (itemId: string, price: number) => {
+  const handleBuy = async (itemId: string, price: number, requiredLevel: number) => {
+    if (useUserStore.getState().level < requiredLevel) {
+      Alert.alert("Level Locked", `You need to reach Level ${requiredLevel} to unlock this item.`);
+      return;
+    }
+
     if ((coins || 0) < price) {
       Alert.alert("Insufficient Coins", "Complete more habits to earn coins!");
       return;
@@ -26,7 +32,7 @@ export default function ShopScreen() {
       await buyShopItem(itemId, token!);
       useUserStore.getState().setUserInfo({ coins: (coins || 0) - price });
       queryClient.invalidateQueries({ queryKey: ["shopItems"] });
-      Alert.alert("Success", "Item purchased!");
+      Alert.alert("🎉 Unlocked!", "Item added to your inventory.");
     } catch (err) {
       Alert.alert("Error", "Failed to complete purchase");
     }
@@ -63,21 +69,30 @@ export default function ShopScreen() {
       <FlatList
         data={SHOP_ITEMS}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <GlassCard style={styles.itemCard}>
-            <View style={styles.iconContainer}>{item.icon}</View>
-            <View style={styles.details}>
-              <Text style={TYPOGRAPHY.h2}>{item.name}</Text>
-              <Text style={TYPOGRAPHY.caption}>{item.description}</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.buyButton}
-              onPress={() => handleBuy(item.id, item.price)}
-            >
-              <Text style={styles.buyText}>{item.price} 💎</Text>
-            </TouchableOpacity>
-          </GlassCard>
-        )}
+        renderItem={({ item }) => {
+          const isLocked = (useUserStore.getState().level || 1) < item.level;
+          return (
+            <GlassCard style={[styles.itemCard, isLocked && { opacity: 0.6 }]}>
+              <View style={styles.iconContainer}>
+                {isLocked ? <Lock color={COLORS.textDim} size={20} /> : item.icon}
+              </View>
+              <View style={styles.details}>
+                <Text style={TYPOGRAPHY.h2}>{item.name}</Text>
+                {isLocked ? (
+                  <Text style={[TYPOGRAPHY.caption, { color: COLORS.primary }]}>Unlocks at Level {item.level}</Text>
+                ) : (
+                  <Text style={TYPOGRAPHY.caption}>{item.description}</Text>
+                )}
+              </View>
+              <TouchableOpacity 
+                style={[styles.buyButton, isLocked && { backgroundColor: COLORS.surface }]}
+                onPress={() => handleBuy(item.id, item.price, item.level)}
+              >
+                <Text style={styles.buyText}>{isLocked ? "Locked" : `${item.price} 💎`}</Text>
+              </TouchableOpacity>
+            </GlassCard>
+          );
+        }}
         contentContainerStyle={styles.listContent}
       />
     </View>

@@ -1,81 +1,96 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Home, BarChart2, Trophy, ShoppingBag, User as UserIcon } from 'lucide-react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import HomeScreen from '../screens/HomeScreen';
+import AvatarStudioScreen from '../screens/AvatarStudioScreen';
 import { COLORS } from '../theme/theme';
-
-import HomeScreen from '../screens/Home/HomeScreen';
-import StatsScreen from '../screens/Stats/StatsScreen';
-import LeaderboardScreen from '../screens/Stats/LeaderboardScreen';
-import ShopScreen from '../screens/Profile/ShopScreen';
-import LoginScreen from '../screens/Auth/LoginScreen';
-import OnboardingScreen from '../screens/Auth/OnboardingScreen';
-import AddHabitScreen from '../screens/Home/AddHabitScreen';
-import HabitDetailScreen from '../screens/Home/HabitDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function TabNavigator() {
+// Placeholder screens
+const ProgressScreen = () => <HomeScreen />;
+const ShopScreen = () => <HomeScreen />;
+const ProfileScreen = () => <HomeScreen />;
+
+function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerStyle: {
+          backgroundColor: COLORS.bg,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 0,
+        },
+        headerTintColor: COLORS.text,
         tabBarStyle: {
-          backgroundColor: COLORS.surface,
-          borderTopColor: 'rgba(255,255,255,0.05)',
-          paddingTop: 5,
+          backgroundColor: COLORS.bg,
+          borderTopColor: COLORS.border,
+          height: 60,
+          paddingBottom: 10,
         },
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
       }}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{ tabBarIcon: ({ color }) => <Home color={color} size={24} /> }}
+      <Tab.Screen
+        name="Rituals"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="flash" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Progress"
+        component={ProgressScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="stats-chart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Shop"
+        component={ShopScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart" size={size} color={color} />
+          ),
+        }}
       />
       <Tab.Screen 
-        name="Stats" 
-        component={StatsScreen} 
-        options={{ tabBarIcon: ({ color }) => <BarChart2 color={color} size={24} /> }}
+        name="Studio" 
+        component={AvatarStudioScreen} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-circle-outline" size={size} color={color} />
+          ),
+        }}
       />
-      <Tab.Screen 
-        name="Rank" 
-        component={LeaderboardScreen} 
-        options={{ tabBarIcon: ({ color }) => <Trophy color={color} size={24} /> }}
-      />
-      <Tab.Screen 
-        name="Shop" 
-        component={ShopScreen} 
-        options={{ tabBarIcon: ({ color }) => <ShoppingBag color={color} size={24} /> }}
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
 }
 
-export default function AppNavigator({ isAuthenticated }: { isAuthenticated: boolean }) {
+export default function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {!isAuthenticated ? (
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Main" component={TabNavigator} />
-          <Stack.Screen 
-            name="AddHabit" 
-            component={AddHabitScreen} 
-            options={{ presentation: 'modal' }}
-          />
-          <Stack.Screen 
-            name="HabitDetail" 
-            component={HabitDetailScreen} 
-          />
-        </>
-      )}
-    </Stack.Navigator>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Main" component={MainTabs} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

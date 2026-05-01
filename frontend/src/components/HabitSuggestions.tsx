@@ -3,6 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { useUserStore } from "../store/useUserStore";
 import { COLORS, SPACING } from "../theme/theme";
 import { Sparkles, Plus } from "lucide-react-native";
+import { Habit } from "../types/habit";
+
+interface HabitSuggestionsProps {
+  onSelect: (habit: Partial<Habit>) => void;
+}
 
 const SUGGESTIONS = {
   Fit: [

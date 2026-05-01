@@ -1,35 +1,23 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
 from app.schemas.user import UserCreate
-from app.models.user import User
-from app.core.security import hash_password, create_access_token
 from app.api.deps import get_db
-from app.services.analytics_service import AnalyticsService
+from app.services.identity_orchestrator import IdentityOrchestrator
 
 router = APIRouter()
 
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    new_user = User(
-        email=user.email,
-        password_hash=hash_password(user.password)
-    )
-    db.add(new_user)
-    db.commit()
-    return {"message": "User created"}
+    try:
+        IdentityOrchestrator.register_email(db, user.email, user.password)
+        return {"message": "User created"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Registration failed")
 
 @router.post("/login")
 def login(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user:
-        return {"error": "Invalid credentials"}
+    session = IdentityOrchestrator.authenticate_email(db, user.email, user.password)
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = create_access_token(data={"sub": str(db_user.id)})
-    
-    # Update active hour & log event
-    db_user.last_active_hour = datetime.utcnow().hour
-    db.commit()
-    AnalyticsService.log_event(db, db_user.id, "app_open")
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+    return session
