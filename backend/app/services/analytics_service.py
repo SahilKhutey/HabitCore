@@ -1,7 +1,12 @@
 from sqlalchemy.orm import Session
 from app.models.analytics import AnalyticsEvent
+from app.models.user import User
+from app.models.habit import Habit
+from app.models.habit_log import HabitLog
 from app.services.websocket_service import manager
 import asyncio
+from datetime import datetime, timedelta
+from app.core.constants import IDENTITY_WEIGHTS
 
 class AnalyticsService:
     @staticmethod
@@ -35,36 +40,29 @@ class AnalyticsService:
         Calculates how aligned a user's recent actions are with their stated identity goal.
         Deep analysis of habit categories vs. identity mapping.
         """
-        from app.models.user import User
-        from app.models.habit import Habit
-        from app.models.habit_log import HabitLog
-        from datetime import datetime, timedelta
-
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             return {}
 
         # 1. Fetch completions from last 30 days
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-        completions = db.query(HabitLog, Habit).join(Habit, HabitLog.habit_id == Habit.id).filter(
+        completions = db.query(HabitLog.id, Habit.name).join(Habit, HabitLog.habit_id == Habit.id).filter(
             Habit.user_id == user_id,
             HabitLog.completed_at >= thirty_days_ago
         ).all()
 
         # 2. Score based on identity goal
-        from app.core.constants import IDENTITY_WEIGHTS
-        
         target_categories = IDENTITY_WEIGHTS.get(user.identity_goal, [])
 
         score = 0
         total = len(completions)
         
         if total == 0:
-            return {"score": 0, "status": "Inactive"}
+            return {"score": 0, "status": "Inactive", "total_completions": 0}
 
-        for log, habit in completions:
+        for log_id, habit_name in completions:
             # We check if the habit name contains a target category keyword
-            if any(cat.lower() in habit.name.lower() for cat in target_categories):
+            if any(cat.lower() in habit_name.lower() for cat in target_categories):
                 score += 1
 
         pulse_percentage = (score / total) * 100

@@ -43,24 +43,27 @@ def test_user_state_transitions():
     assert user_state_engine.determine_user_mode(burnout_data) == UserMode.BURNOUT
 
 def test_cached_ai_service():
-    from app.services.cached_ai_service import CachedAICoachService
+    from app.services.ai_service import AIService
     from unittest.mock import MagicMock
     
     behavior_mock = MagicMock()
-    service = CachedAICoachService(behavior_mock)
+    behavior_mock.calculate_burnout_score.return_value = 0.2
+    behavior_mock.get_user_patterns.return_value = {"best_time": {"value": "Morning"}}
+    service = AIService(behavior_mock)
+    service.client = MagicMock() # Ensure it doesn't hit fallback before call
     
     user_id = "user_cache_test"
     context = {"current_streak": 5, "recent_failures": 0}
     
-    # Mock AI coach advice
-    service.ai_coach.generate_personalized_advice = MagicMock(return_value="Take a walk")
+    # Mock AIService advice
+    service._call_ai_api = MagicMock(return_value="Take a walk")
     
     # First call - cache miss
-    advice1 = service.get_advice(user_id, context)
+    advice1 = service.get_personalized_advice(user_id, context)
     assert advice1 == "Take a walk"
-    assert service.ai_coach.generate_personalized_advice.call_count == 1
+    assert service._call_ai_api.call_count == 1
     
     # Second call - cache hit
-    advice2 = service.get_advice(user_id, context)
+    advice2 = service.get_personalized_advice(user_id, context)
     assert advice2 == "Take a walk"
-    assert service.ai_coach.generate_personalized_advice.call_count == 1
+    assert service._call_ai_api.call_count == 1

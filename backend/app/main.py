@@ -1,8 +1,9 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, habit_routes, avatar_routes
+from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, avatar_routes
 from app.db.session import engine
-from app.db.base import Base
+from app.db.declarative import Base
+import app.db.base
 from app.scheduler import scheduler
 from app.services.websocket_service import manager
 
@@ -14,8 +15,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:8081",
+        "http://localhost:8082",
         "http://localhost:5173",
         "http://127.0.0.1:8081",
+        "http://127.0.0.1:8082",
         "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
@@ -25,10 +28,18 @@ app.add_middleware(
 
 from app.services.nudge_engine import NudgeEngine
 from app.db.session import SessionLocal
+from app.api.routes.seed_shop import seed_shop_items
 
 @app.on_event("startup")
 def startup_event():
     scheduler.start()
+    
+    # Seed shop items if empty
+    db = SessionLocal()
+    try:
+        seed_shop_items(db)
+    finally:
+        db.close()
     
     # Nudge Engine: Run every 6 hours to identify sliding users
     @scheduler.scheduled_job("interval", hours=6)
@@ -52,7 +63,6 @@ app.include_router(shop.router, prefix="/shop")
 app.include_router(analytics.router, prefix="/analytics")
 app.include_router(gamification.router, prefix="/gamification")
 app.include_router(psychological.router, prefix="/psychological")
-app.include_router(habit_routes.router, prefix="/api/habit", tags=["habit"])
 app.include_router(avatar_routes.router, prefix="/api/avatar", tags=["avatar"])
 
 @app.websocket("/ws")

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, JSON, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from app.db.base import Base
+from app.db.declarative import Base
 import uuid
 
 class AnalyticsEvent(Base):

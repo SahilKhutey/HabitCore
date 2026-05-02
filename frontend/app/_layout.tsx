@@ -1,66 +1,67 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import React, { useEffect } from 'react';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StatusBar } from 'expo-status-bar';
+import { 
+  useFonts, 
+  SpaceGrotesk_400Regular, 
+  SpaceGrotesk_500Medium, 
+  SpaceGrotesk_600SemiBold, 
+  SpaceGrotesk_700Bold 
+} from '@expo-google-fonts/space-grotesk';
+import { 
+  Inter_400Regular, 
+  Inter_500Medium, 
+  Inter_600SemiBold 
+} from '@expo-google-fonts/inter';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
+
+  useEffect(() => {
+    if (fontError) throw fontError;
+  }, [fontError]);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={DarkTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={DarkTheme}>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="onboarding" />
+            <Stack.Screen name="auth/login" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: true }} />
+          </Stack>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
-

@@ -4,23 +4,24 @@ import asyncio
 import hashlib
 from sqlalchemy.orm import Session
 
-from ..services.psychological_service import psychological_service
-from ..services.advanced_reward_service import AdvancedRewardService
-from ..services.recovery_service import recovery_service
-from ..services.cached_ai_service import CachedAICoachService
-from ..services.behavior_memory_service import BehaviorMemoryService
-from ..services.advanced_gamification import gamification_service
-from ..services.avatar_service import AvatarService
-from ..core.state_engine import user_state_engine, UserMode
-from ..core.security import security_engine
-from ..utils.logging import structured_logger
+from app.services.reward_service import reward_service
+from app.services.psychological_service import psychological_service
+from app.services.recovery_service import recovery_service
+from app.services.ai_service import AIService, get_ai_service
+from app.services.behavior_memory_service import BehaviorMemoryService
+from app.services.gamification_service import gamification_service
+from app.services.avatar_service import AvatarService
+from app.core.state_engine import user_state_engine, UserMode
+from app.models.user import User
+from app.core.security import security_engine
+from app.utils.logging import structured_logger
 
 class HabitOrchestrator:
     def __init__(self, db_session: Session):
         self.db = db_session
         self.behavior_service = BehaviorMemoryService(db_session)
-        self.ai_service = CachedAICoachService(self.behavior_service)
-        self.reward_service = AdvancedRewardService()
+        self.ai_service = AIService(self.behavior_service)
+        self.reward_service = reward_service
         self.avatar_service = AvatarService(db_session)
         self.logger = structured_logger
         
@@ -56,7 +57,20 @@ class HabitOrchestrator:
             # 6. 🎁 Gamification Elements
             gamification = await self._get_gamification_elements(user_id, habit_data, rewards)
             
-            # 7. 📈 Update User Progress (In production, this would hit the DB)
+            # 7. 📈 Update User Progress
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.xp += rewards["total_xp"]
+                user.coins += rewards["coins"]
+                
+                # Check for level up
+                level_data = self.reward_service.calculate_level_up(user.xp, user.level)
+                if level_data["level_up"]:
+                    user.level = level_data["level"]
+                    user.coins += level_data["reward"].get("coins", 0)
+                
+                self.db.commit()
+                
             self.logger.info("Habit completion processed", user_id=user_id, xp_earned=rewards["total_xp"])
             
             return {
@@ -101,10 +115,23 @@ class HabitOrchestrator:
         }
     
     async def _log_behavior(self, user_id: str, habit_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Log behavior and return context"""
+        """Log behavior and create HabitLog entry"""
+        from app.models.habit_log import HabitLog
+        
+        # 1. Create the persistent log entry
+        habit_log = HabitLog(
+            habit_id=habit_data["habit_id"],
+            user_id=user_id,
+            completed=True,
+            completed_at=datetime.utcnow()
+        )
+        self.db.add(habit_log)
+        self.db.commit()
+
+        # 2. Log behavioral analytics
         context = {
-            "time_of_day": datetime.now().hour,
-            "day_of_week": datetime.now().strftime("%A"),
+            "time_of_day": datetime.utcnow().hour,
+            "day_of_week": datetime.utcnow().strftime("%A"),
             "device": "mobile"
         }
         
@@ -115,7 +142,7 @@ class HabitOrchestrator:
             context
         )
         
-        return {"logged": True, "context": context}
+        return {"logged": True, "habit_log_id": habit_log.id, "context": context}
     
     async def _update_user_state(self, user_id: str) -> Dict[str, Any]:
         """Update and return current user state"""
@@ -146,7 +173,7 @@ class HabitOrchestrator:
             "current_streak": 7, # Would come from state
             "recent_failures": 1
         }
-        advice = self.ai_service.get_advice(user_id, context)
+        advice = self.ai_service.get_personalized_advice(user_id, context)
         
         return {
             "message": advice,

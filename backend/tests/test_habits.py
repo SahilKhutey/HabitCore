@@ -45,5 +45,5 @@ def test_complete_habit(client):
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "completed"
-    assert data["xp"] > 0
+    assert data["success"] == True
+    assert data["rewards"]["total_xp"] > 0

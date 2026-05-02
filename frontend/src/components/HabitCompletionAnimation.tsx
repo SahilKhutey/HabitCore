@@ -6,18 +6,21 @@ import Animated, {
   withDelay,
   useSharedValue,
   useAnimatedStyle,
-  runOnJS,
+  interpolateColor,
   FadeIn,
   FadeOut
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { COLORS, SPACING, TYPOGRAPHY } from '../theme/theme';
-import { Check } from 'lucide-react-native';
+import { Check, Zap } from 'lucide-react-native';
+import { GlassCard } from './GlassCard';
 
 interface Habit {
   id: string;
   name: string;
   difficulty: string;
+  xp_reward?: number;
+  duration?: string;
 }
 
 interface HabitCompletionAnimationProps {
@@ -28,31 +31,46 @@ interface HabitCompletionAnimationProps {
 
 export default function HabitCompletionAnimation({ habit, onComplete, isHindi = false }: HabitCompletionAnimationProps) {
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isDone, setIsDone] = useState(false);
   const [reward, setReward] = useState<any>(null);
   
   const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
+  const completionProgress = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value
+  const containerStyle = useAnimatedStyle(() => {
+    const borderColor = interpolateColor(
+      completionProgress.value,
+      [0, 1],
+      ['rgba(255, 255, 255, 0.1)', COLORS.primary]
+    );
+
+    return {
+      transform: [{ scale: scale.value }],
+      borderColor,
+      backgroundColor: completionProgress.value > 0.5 ? 'rgba(0, 255, 204, 0.15)' : 'transparent',
+    };
+  });
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: completionProgress.value,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: completionProgress.value * 0.5,
+    shadowRadius: 15,
   }));
 
   const handleComplete = async () => {
-    if (isCompleting) return;
+    if (isCompleting || isDone) return;
     setIsCompleting(true);
     
     // Animation sequence
     scale.value = withSequence(
       withSpring(0.95),
-      withSpring(1.1),
-      withDelay(200, withSpring(1))
+      withSpring(1.05),
+      withSpring(1)
     );
     
-    opacity.value = withSequence(
-      withSpring(0.8),
-      withDelay(300, withSpring(1))
-    );
+    completionProgress.value = withSpring(1);
 
     try {
       const result = await onComplete(habit);
@@ -60,47 +78,64 @@ export default function HabitCompletionAnimation({ habit, onComplete, isHindi = 
       if (result.success) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setReward(result.rewards);
+        setIsDone(true);
         
-        // Hide reward after delay
+        // Reset state after showing reward
         setTimeout(() => {
           setReward(null);
           setIsCompleting(false);
         }, 2500);
       } else {
+        completionProgress.value = withSpring(0);
         setIsCompleting(false);
       }
     } catch (error) {
       console.error('Completion error:', error);
+      completionProgress.value = withSpring(0);
       setIsCompleting(false);
     }
   };
 
   return (
     <View style={styles.wrapper}>
-      <Animated.View style={[styles.container, animatedStyle]}>
+      <Animated.View style={[styles.glowLayer, glowStyle]} />
+      <GlassCard 
+        style={[styles.container, containerStyle]}
+        variant={isDone ? 'highlighted' : 'default'}
+      >
         <TouchableOpacity
           onPress={handleComplete}
-          onPressIn={() => {
-            scale.value = withSpring(0.95, { damping: 15 });
-          }}
-          onPressOut={() => {
-            if (!isCompleting) {
-              scale.value = withSpring(1, { damping: 15 });
-            }
-          }}
-          disabled={isCompleting}
+          disabled={isCompleting || isDone}
           style={styles.button}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <View style={styles.content}>
-            <View style={styles.checkCircle}>
-              <Check color={COLORS.primary} size={16} />
+          <View style={styles.leftContent}>
+            <View style={[styles.checkCircle, isDone && styles.checkCircleDone]}>
+              {isDone ? (
+                <Check color="#000" size={14} strokeWidth={3} />
+              ) : (
+                <Zap color={COLORS.primary} size={12} fill={COLORS.primary} />
+              )}
             </View>
-            <Text style={styles.habitName}>{habit.name}</Text>
+            <View>
+              <Text style={[styles.habitName, isDone && styles.habitNameDone]}>
+                {habit.name}
+              </Text>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaText}>{habit.duration || 'Daily'}</Text>
+                <Text style={styles.dot}>•</Text>
+                <Text style={styles.xpText}>+{habit.xp_reward || 50} XP</Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.difficulty}>{habit.difficulty.toUpperCase()}</Text>
+          
+          {!isDone && (
+            <View style={styles.actionBtn}>
+              <Text style={styles.actionText}>{isHindi ? 'पूरा करें' : 'DONE'}</Text>
+            </View>
+          )}
         </TouchableOpacity>
-      </Animated.View>
+      </GlassCard>
 
       {reward && (
         <Animated.View 
@@ -109,9 +144,9 @@ export default function HabitCompletionAnimation({ habit, onComplete, isHindi = 
           style={styles.rewardOverlay}
         >
           <View style={styles.rewardCard}>
-            <Text style={styles.rewardText}>+{reward.total_xp} XP</Text>
+            <Text style={styles.rewardText}>+{reward.total_xp || 50} XP</Text>
             <Text style={styles.rewardSubtext}>
-              {isHindi ? 'शानदार! 🔥' : 'AMAZING! 🔥'}
+              {isHindi ? 'शानदार! 🔥' : 'LEVEL UP FLOW 🔥'}
             </Text>
           </View>
         </Animated.View>
@@ -121,46 +156,98 @@ export default function HabitCompletionAnimation({ habit, onComplete, isHindi = 
 }
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 12, position: 'relative' },
-  container: { borderRadius: 16, backgroundColor: COLORS.surface, elevation: 2 },
+  wrapper: { marginBottom: SPACING.md, position: 'relative' },
+  glowLayer: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    zIndex: -1,
+  },
+  container: {
+    padding: 0, // Reset GlassCard padding for custom inner button
+    borderWidth: 1.5,
+  },
   button: { 
-    padding: 16, 
+    padding: SPACING.lg, 
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'space-between' 
   },
-  content: { flexDirection: 'row', alignItems: 'center' },
+  leftContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   checkCircle: { 
-    width: 24, 
-    height: 24, 
-    borderRadius: 12, 
-    borderWidth: 2, 
-    borderColor: COLORS.primary, 
+    width: 32, 
+    height: 32, 
+    borderRadius: 16, 
+    borderWidth: 1.5, 
+    borderColor: 'rgba(0, 255, 204, 0.3)', 
     alignItems: 'center', 
     justifyContent: 'center',
-    marginRight: 12
+    marginRight: SPACING.md,
+    backgroundColor: 'rgba(0, 255, 204, 0.05)',
   },
-  habitName: { ...TYPOGRAPHY.body, fontWeight: '600', color: COLORS.text },
-  difficulty: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary },
+  checkCircleDone: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  habitName: { 
+    ...TYPOGRAPHY.h3, 
+    color: COLORS.text,
+  },
+  habitNameDone: {
+    opacity: 0.6,
+    textDecorationLine: 'line-through',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  metaText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textDim,
+  },
+  dot: {
+    color: COLORS.textDim,
+    marginHorizontal: 6,
+    fontSize: 10,
+  },
+  xpText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  actionBtn: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  actionText: {
+    ...TYPOGRAPHY.label,
+    fontSize: 10,
+    color: COLORS.primary,
+  },
   rewardOverlay: {
     position: 'absolute',
-    top: -20,
+    top: -30,
     right: 0,
     left: 0,
     alignItems: 'center',
     zIndex: 10
   },
   rewardCard: {
-    backgroundColor: '#fbbf24',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: '#fbbf24',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 10
   },
-  rewardText: { ...TYPOGRAPHY.body, fontWeight: '900', color: '#000' },
+  rewardText: { ...TYPOGRAPHY.h3, color: '#000' },
   rewardSubtext: { ...TYPOGRAPHY.caption, fontWeight: '700', color: '#000', textAlign: 'center' }
 });

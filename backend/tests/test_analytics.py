@@ -28,13 +28,16 @@ def test_identity_pulse_calculation(client):
         json={"name": "Productive Habit", "time": "Morning", "difficulty": "medium", "target_per_day": 1},
         headers=headers
     )
+    assert create_resp.status_code == 200
     habit_id = create_resp.json()["id"]
     
-    client.post(
+    comp_resp = client.post(
         "/habits/complete",
         json={"habit_id": habit_id},
         headers=headers
     )
+    assert comp_resp.status_code == 200
+    assert comp_resp.json()["success"] == True
     
     # Check pulse again (should have a score now)
     response = client.get("/analytics/pulse", headers=headers)

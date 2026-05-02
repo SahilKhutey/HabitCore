@@ -1,59 +1,84 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+import { Tabs } from 'expo-router';
+import { Zap, Heart, Brain, Sparkles, User } from 'lucide-react-native';
+import { COLORS } from '../../src/theme/theme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textDim,
+        tabBarStyle: {
+          backgroundColor: COLORS.background,
+          borderTopColor: 'rgba(255, 255, 255, 0.05)',
+          height: 70,
+          paddingBottom: 15,
+          paddingTop: 10,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 0,
+          borderTopWidth: 1,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontFamily: 'SpaceGrotesk_500Medium',
+        },
       }}>
+
+      {/* Tab 1: Today — Habit completion loop */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: 'Today',
+          tabBarIcon: ({ color, focused }) => (
+            <Zap size={24} color={color} fill={focused ? color : 'transparent'} />
           ),
         }}
       />
+
+      {/* Tab 2: Life — Life domains, mood check-in, wellbeing */}
       <Tabs.Screen
-        name="two"
+        name="wellness"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Life',
+          tabBarIcon: ({ color }) => <Heart size={24} color={color} />,
         }}
       />
+
+      {/* Tab 3: Insights — Intelligence + Psychology merged */}
+      <Tabs.Screen
+        name="intelligence"
+        options={{
+          title: 'Insights',
+          tabBarIcon: ({ color }) => <Brain size={24} color={color} />,
+        }}
+      />
+
+      {/* Tab 4: Evolve — Avatar studio + Archetype */}
+      <Tabs.Screen
+        name="studio"
+        options={{
+          title: 'Evolve',
+          tabBarIcon: ({ color }) => <Sparkles size={24} color={color} />,
+        }}
+      />
+
+      {/* Tab 5: Profile */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+        }}
+      />
+
+      {/* Hidden screens */}
+      <Tabs.Screen name="coach" options={{ href: null }} />
+      <Tabs.Screen name="shop" options={{ href: null }} />
     </Tabs>
   );
 }

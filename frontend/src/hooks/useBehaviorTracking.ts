@@ -6,7 +6,7 @@ import { api } from '../api/client';
 export const useBehaviorTracking = () => {
   const [patterns, setPatterns] = useState<any>({});
   const [burnoutScore, setBurnoutScore] = useState(0);
-  const { token, user } = useUserStore();
+  const { token } = useUserStore();
 
   const logEvent = async (event_type: string, event_data: any, context = {}) => {
     const event = {

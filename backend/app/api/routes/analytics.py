@@ -11,6 +11,41 @@ from app.services.analytics_service import AnalyticsService
 
 router = APIRouter()
 
+@router.get("/heatmap")
+def get_heatmap(days: int = 90, user=Depends(auth_required), db: Session = Depends(get_db)):
+    """
+    Returns daily completion counts for the last N days.
+    Format: { "2024-04-01": 2, "2024-04-02": 0, ... }
+    Used by the HabitHeatmap calendar component.
+    """
+    end_date = date.today()
+    start_date = end_date - timedelta(days=days)
+
+    logs = db.query(
+        HabitLog.date,
+        func.count(HabitLog.id).label("count")
+    ).join(Habit, Habit.id == HabitLog.habit_id).filter(
+        Habit.user_id == user.id,
+        HabitLog.date >= start_date,
+        HabitLog.date <= end_date,
+    ).group_by(HabitLog.date).all()
+
+    # Build full dict with 0-filled gaps
+    result: dict = {}
+    for i in range(days + 1):
+        d = (start_date + timedelta(days=i)).isoformat()
+        result[d] = 0
+
+    for log in logs:
+        result[log.date.isoformat()] = log.count
+
+    return {
+        "success": True,
+        "heatmap": result,
+        "total_completions": sum(result.values()),
+        "active_days": sum(1 for v in result.values() if v > 0),
+    }
+
 @router.get("/pulse")
 def get_identity_pulse(user=Depends(auth_required), db: Session = Depends(get_db)):
     """

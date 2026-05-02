@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
-from ..services.avatar_service import get_avatar_service
-from ..api.deps import get_db, get_current_user
-from ..models.avatar_models import AvatarItem
+from app.services.avatar_service import get_avatar_service
+from app.api.deps import get_db, auth_required
+from app.models.avatar_models import AvatarItem
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ class PurchaseRequest(BaseModel):
     item_id: str
 
 @router.get("/")
-async def get_avatar(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+async def get_avatar(db: Session = Depends(get_db), current_user = Depends(auth_required)):
     """Get user avatar data"""
     try:
         service = get_avatar_service(db)
@@ -53,7 +53,7 @@ async def get_avatar(db: Session = Depends(get_db), current_user = Depends(get_c
         raise HTTPException(status_code=500, detail=f"Failed to get avatar: {str(e)}")
 
 @router.post("/update")
-async def update_avatar(request: AvatarUpdateRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+async def update_avatar(request: AvatarUpdateRequest, db: Session = Depends(get_db), current_user = Depends(auth_required)):
     """Update avatar progress"""
     try:
         service = get_avatar_service(db)
@@ -78,7 +78,7 @@ async def update_avatar(request: AvatarUpdateRequest, db: Session = Depends(get_
         raise HTTPException(status_code=500, detail=f"Failed to update avatar: {str(e)}")
 
 @router.post("/purchase")
-async def purchase_item(request: PurchaseRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+async def purchase_item(request: PurchaseRequest, db: Session = Depends(get_db), current_user = Depends(auth_required)):
     """Purchase and equip avatar item"""
     try:
         service = get_avatar_service(db)
@@ -92,7 +92,7 @@ async def purchase_item(request: PurchaseRequest, db: Session = Depends(get_db),
         raise HTTPException(status_code=500, detail=f"Purchase failed: {str(e)}")
 
 @router.get("/shop")
-async def get_shop_items(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+async def get_shop_items(db: Session = Depends(get_db), current_user = Depends(auth_required)):
     """Get available avatar items"""
     try:
         items = db.query(AvatarItem).order_by(AvatarItem.price).all()

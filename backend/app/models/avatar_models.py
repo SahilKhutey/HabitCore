@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, Float, JSON, DateTime, ForeignKe
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from enum import Enum
-from app.db.base import Base
+from app.db.declarative import Base
 
 class Archetype(str, Enum):
     BEGINNER = "beginner"

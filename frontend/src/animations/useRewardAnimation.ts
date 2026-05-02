@@ -15,14 +15,19 @@ export const useRewardAnimation = () => {
     setIsAnimating(true);
     
     // Different haptic feedback for different rewards
-    const hapticType = {
-      xp: Haptics.ImpactFeedbackStyle.Medium,
-      coins: Haptics.ImpactFeedbackStyle.Light,
-      streak: Haptics.ImpactFeedbackStyle.Heavy,
-      level: Haptics.NotificationFeedbackType.Success
-    }[type];
+    const hapticMap = {
+      xp: { type: 'impact', style: Haptics.ImpactFeedbackStyle.Medium },
+      coins: { type: 'impact', style: Haptics.ImpactFeedbackStyle.Light },
+      streak: { type: 'impact', style: Haptics.ImpactFeedbackStyle.Heavy },
+      level: { type: 'notification', style: Haptics.NotificationFeedbackType.Success }
+    };
 
-    Haptics.impactAsync(hapticType);
+    const config = hapticMap[type];
+    if (config.type === 'impact') {
+      Haptics.impactAsync(config.style as Haptics.ImpactFeedbackStyle);
+    } else {
+      Haptics.notificationAsync(config.style as Haptics.NotificationFeedbackType);
+    }
 
     // Entry animation
     scale.value = withSpring(1.2, { damping: 10, stiffness: 100 });

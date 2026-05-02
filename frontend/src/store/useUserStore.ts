@@ -18,11 +18,15 @@ export interface UserState {
    focusMode: boolean;
    coins: number;
    streakFreeze: number;
-  setUserInfo: (info: Partial<UserState>) => void;
-  updatePreferences: (prefs: Partial<UserState>) => void;
-  setToken: (token: string | null) => void;
-  addXp: (amount: number) => void;
-  resetUser: () => void;
+   identityPulse: number;
+   burnoutScore: number;
+   recoveryMode: string;
+   identityGoal: string;
+   setUserInfo: (info: Partial<UserState>) => void;
+   updatePreferences: (prefs: Partial<UserState>) => void;
+   setToken: (token: string | null) => void;
+   addXp: (amount: number) => void;
+   resetUser: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -43,6 +47,10 @@ export const useUserStore = create<UserState>((set) => ({
   focusMode: false,
   coins: 100,
   streakFreeze: 1,
+  identityPulse: 0,
+  burnoutScore: 0,
+  recoveryMode: 'normal',
+  identityGoal: 'Productive',
   setUserInfo: (info) => set((state) => ({ ...state, ...info })),
   updatePreferences: (prefs) => set((state) => ({ ...state, ...prefs })),
   setToken: (token) => set({ token }),

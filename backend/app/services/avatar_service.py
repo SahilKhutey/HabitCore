@@ -1,9 +1,9 @@
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from ..models.avatar_models import UserAvatar, AvatarItem, Archetype, EvolutionStage
+from app.models.avatar_models import UserAvatar, AvatarItem, Archetype, EvolutionStage
 # Assuming psychological_service is available
-from .psychological_service import psychological_service
+from app.services.psychological_service import psychological_service
 
 class AvatarService:
     def __init__(self, db_session: Session):

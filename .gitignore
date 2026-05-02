@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.env
+*.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Expo / React Native
+node_modules/
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temp / scratch test scripts (keep in repo for now)
+# backend/test_*.py

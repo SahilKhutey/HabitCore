@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, ForeignKey, DateTime, Boolean, Integer
 from sqlalchemy.sql import func
-from app.db.base import Base
+from app.db.declarative import Base
 import uuid
 
 class Badge(Base):

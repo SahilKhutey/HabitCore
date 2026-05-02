@@ -1,5 +1,9 @@
 from app.db.declarative import Base
+from app.models.user import User
+from app.models.habit import Habit
 from app.models.habit_log import HabitLog
 from app.models.analytics import AnalyticsEvent
 from app.models.user_preferences import UserPreferences, UserRule
 from app.models.shop import ShopItem, UserInventory
+from app.models.gamification import DailyChallenge, UserBadge, Badge, Referral
+from app.models.psychological import DailyCheckin

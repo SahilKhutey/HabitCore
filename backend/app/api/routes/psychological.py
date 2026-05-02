@@ -7,8 +7,7 @@ from app.api.deps import get_db, auth_required
 from app.services.psychological_service import psychological_service
 from app.services.reward_service import reward_service
 from app.services.behavior_memory_service import BehaviorMemoryService
-from app.services.ai_coach_service import AICoachService
-from app.services.cached_ai_service import CachedAICoachService
+from app.services.ai_service import AIService, get_ai_service
 from app.core.security import security_engine
 from app.models.psychological import DailyCheckin
 
@@ -22,7 +21,7 @@ def get_cached_ai_service(db: Session):
     global cached_ai_service
     if not cached_ai_service:
         behavior_service = BehaviorMemoryService(db)
-        cached_ai_service = CachedAICoachService(behavior_service)
+        cached_ai_service = AIService(behavior_service)
     return cached_ai_service
 
 # Behavior routes
@@ -59,7 +58,7 @@ def get_ai_advice(context: Dict, user=Depends(auth_required), db: Session = Depe
         raise HTTPException(status_code=429, detail="Too many requests")
         
     service = get_cached_ai_service(db)
-    advice = service.get_advice(user.id, context)
+    advice = service.get_personalized_advice(user.id, context)
     return {"success": True, "advice": advice}
 
 class CheckinRequest(BaseModel):
@@ -119,40 +118,7 @@ def daily_checkin(request: CheckinRequest, user=Depends(auth_required), db: Sess
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Checkin error: {str(e)}")
 
-@router.post("/habits/complete")
-def complete_habit(request: HabitCompletionRequest, user=Depends(auth_required), db: Session = Depends(get_db)):
-    try:
-        # Calculate rewards
-        xp_reward = psychological_service.calculate_xp_reward(
-            request.difficulty, 
-            user.current_streak if hasattr(user, 'current_streak') else 0
-        )
-        
-        user.xp += xp_reward
-        user.coins += xp_reward // 2
-        
-        # Check level up
-        level_data = reward_service.calculate_level_up(user.xp, user.level)
-        
-        if level_data["level_up"]:
-            user.level = level_data["level"]
-            # Apply rewards
-            user.coins += level_data["reward"].get("coins", 0)
-            
-        db.commit()
-        
-        return {
-            "success": True,
-            "reward": {
-                "xp": xp_reward,
-                "coins": xp_reward // 2,
-                "message": psychological_service.generate_encouragement_message(request.completed, {})
-            },
-            "level_up_info": level_data
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Habit completion error: {str(e)}")
+# Redundant /habits/complete moved to habits.py
 
 @router.get("/daily-challenge")
 def get_daily_challenge():
@@ -181,3 +147,160 @@ def get_user_progress(user=Depends(auth_required)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Progress fetch error: {str(e)}")
+
+
+# ─── LIFE DOMAINS ─────────────────────────────────────────────────────────────
+
+# Auto-tag habits to life domains by name keywords
+DOMAIN_KEYWORDS = {
+    "physical": ["run", "workout", "gym", "exercise", "yoga", "stretch", "walk", "fitness", "steps", "pushup", "push-up", "plank", "swim", "bike", "sport"],
+    "mental":   ["meditat", "mindful", "journal", "read", "learn", "study", "focus", "breath", "gratitude", "reflect", "think", "cognitive"],
+    "work":     ["deep work", "cod", "writ", "plan", "review", "project", "email", "meeting", "productiv", "task", "build", "design", "research"],
+    "social":   ["call", "connect", "friend", "family", "communit", "volunteer", "network", "social", "talk", "meet"],
+    "sleep":    ["sleep", "rest", "nap", "bedtime", "wind down", "night"],
+}
+
+def classify_habit_domain(name: str) -> str:
+    name_lower = name.lower()
+    for domain, keywords in DOMAIN_KEYWORDS.items():
+        if any(kw in name_lower for kw in keywords):
+            return domain
+    return "mental"  # Default uncategorised → mental
+
+@router.get("/life-domains")
+def get_life_domains(user=Depends(auth_required), db: Session = Depends(get_db)):
+    """
+    Computes life domain scores (0-100) from habit completions + checkin data.
+    Domains: physical, mental, work, social, sleep
+    """
+    from app.models.habit import Habit
+    from app.models.habit_log import HabitLog
+    from sqlalchemy import func
+    from datetime import date, timedelta
+
+    # Last 7 days
+    today = date.today()
+    week_ago = today - timedelta(days=7)
+
+    # Get all user habits with completion counts this week
+    habits = db.query(Habit).filter(Habit.user_id == user.id).all()
+    logs_this_week = db.query(
+        HabitLog.habit_id,
+        func.count(HabitLog.id).label("count")
+    ).join(Habit, Habit.id == HabitLog.habit_id).filter(
+        Habit.user_id == user.id,
+        HabitLog.date >= week_ago,
+    ).group_by(HabitLog.habit_id).all()
+
+    log_map = {row.habit_id: row.count for row in logs_this_week}
+    
+    # Score per domain: completions/7 * 100 (max 100)
+    domain_totals = {d: {"completed": 0, "total_possible": 0, "habits": []} for d in DOMAIN_KEYWORDS}
+    
+    for habit in habits:
+        domain = classify_habit_domain(habit.name)
+        if domain in domain_totals:
+            completions = log_map.get(habit.id, 0)
+            domain_totals[domain]["completed"] += completions
+            domain_totals[domain]["total_possible"] += 7
+            domain_totals[domain]["habits"].append(habit.name)
+
+    # Get latest checkin for sleep and mood boost
+    latest = db.query(DailyCheckin).filter(
+        DailyCheckin.user_id == user.id,
+    ).order_by(DailyCheckin.date.desc()).first()
+
+    domains = []
+    domain_meta = {
+        "physical": {"label": "Physical", "emoji": "💪", "color": "#33ffd6"},
+        "mental":   {"label": "Mental",   "emoji": "🧠", "color": "#a78bfa"},
+        "work":     {"label": "Work",     "emoji": "💼", "color": "#38bdf8"},
+        "social":   {"label": "Social",   "emoji": "💞", "color": "#f472b6"},
+        "sleep":    {"label": "Sleep",    "emoji": "😴", "color": "#fbbf24"},
+    }
+
+    for domain, meta in domain_meta.items():
+        data = domain_totals[domain]
+        if data["total_possible"] > 0:
+            score = round((data["completed"] / data["total_possible"]) * 100)
+        elif domain == "sleep" and latest:
+            score = round((latest.sleep_quality / 5) * 100)
+        else:
+            score = 0
+
+        # Sleep domain boost from checkin
+        if domain == "sleep" and latest and latest.sleep_quality:
+            score = max(score, round((latest.sleep_quality / 5) * 100))
+
+        domains.append({
+            "domain": domain,
+            **meta,
+            "score": min(100, score),
+            "habits": data["habits"],
+            "completions_this_week": data["completed"],
+        })
+
+    # Overall life score
+    overall = round(sum(d["score"] for d in domains) / len(domains))
+
+    return {
+        "success": True,
+        "domains": domains,
+        "overall_score": overall,
+        "checkin_mood": latest.mood if latest else None,
+        "checkin_date": latest.date.isoformat() if latest else None,
+    }
+
+
+@router.get("/checkin/history")
+def get_checkin_history(days: int = 7, user=Depends(auth_required), db: Session = Depends(get_db)):
+    """Returns last N days of mood check-ins for trend charts."""
+    from datetime import date, timedelta
+
+    today = date.today()
+    since = today - timedelta(days=days)
+
+    checkins = db.query(DailyCheckin).filter(
+        DailyCheckin.user_id == user.id,
+        DailyCheckin.date >= since
+    ).order_by(DailyCheckin.date.asc()).all()
+
+    # Map mood to numeric score for charting
+    mood_scores = {"happy": 5, "excited": 5, "neutral": 3, "tired": 2, "sad": 1, "angry": 1}
+
+    result = []
+    for c in checkins:
+        result.append({
+            "date": c.date.isoformat(),
+            "mood": c.mood,
+            "mood_score": mood_scores.get(c.mood, 3),
+            "energy_morning": c.energy_morning,
+            "energy_evening": c.energy_evening,
+            "sleep_quality": c.sleep_quality,
+            "reflection": c.reflection,
+        })
+
+    return {"success": True, "checkins": result, "total": len(result)}
+
+
+@router.get("/today-checkin")
+def get_today_checkin(user=Depends(auth_required), db: Session = Depends(get_db)):
+    """Returns today's check-in if it exists, else None."""
+    from datetime import date
+    today = date.today()
+    checkin = db.query(DailyCheckin).filter(
+        DailyCheckin.user_id == user.id,
+        DailyCheckin.date == today
+    ).first()
+
+    if not checkin:
+        return {"done": False, "checkin": None}
+
+    return {
+        "done": True,
+        "checkin": {
+            "mood": checkin.mood,
+            "energy_morning": checkin.energy_morning,
+            "sleep_quality": checkin.sleep_quality,
+        }
+    }

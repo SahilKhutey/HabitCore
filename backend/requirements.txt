@@ -11,3 +11,7 @@ apscheduler
 pydantic-settings
 python-json-logger
 numpy
+openai
+pytest
+pytest-asyncio
+httpx

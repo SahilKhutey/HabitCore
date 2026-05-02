@@ -11,15 +11,16 @@ from app.services.user_guardian import UserGuardian
 from app.models.habit import Habit
 
 router = APIRouter()
-from app.services.gamification_service import calculate_level_data
+from app.services.reward_service import reward_service
+from app.services.gamification_service import gamification_service
 
 @router.get("/level")
 def get_level(user=Depends(auth_required)):
-    level, current_xp, next_xp = calculate_level_data(user.xp)
+    level_data = reward_service.calculate_level_up(user.xp, user.level)
     return {
-        "level": level,
-        "current_xp": current_xp,
-        "next_level_xp": next_xp,
+        "level": level_data["level"],
+        "current_xp": user.xp, # Total XP
+        "next_level_xp": 100 * ((level_data["level"] + 1) ** 1.5), # Calculation logic
         "total_xp": user.xp
     }
 
@@ -44,8 +45,7 @@ def get_badges(user=Depends(auth_required), db: Session = Depends(get_db)):
 
 @router.get("/leaderboard")
 def get_leaderboard(db: Session = Depends(get_db)):
-    from app.services.gamification_service import HeroService
-    return HeroService.get_leaderboard(db)
+    return gamification_service.get_leaderboard(db)
 
 @router.post("/shop/buy/{item_id}")
 def buy_item(item_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):
@@ -106,3 +106,69 @@ def apply_referral(code: str, user=Depends(auth_required), db: Session = Depends
     db.commit()
 
     return {"status": "applied", "referrer": referrer.email}
+
+
+# ─── ARCHETYPE / IDENTITY ──────────────────────────────────────────────────────
+
+ARCHETYPE_HABITS = {
+    "warrior": [
+        {"name": "Morning Workout", "time": "06:00", "difficulty": "hard"},
+        {"name": "Cold Shower", "time": "06:30", "difficulty": "medium"},
+        {"name": "Evening Review", "time": "21:00", "difficulty": "easy"},
+    ],
+    "monk": [
+        {"name": "Morning Meditation", "time": "07:00", "difficulty": "medium"},
+        {"name": "Gratitude Journal", "time": "08:00", "difficulty": "easy"},
+        {"name": "Evening Wind Down", "time": "21:30", "difficulty": "easy"},
+    ],
+    "builder": [
+        {"name": "Deep Work Session", "time": "09:00", "difficulty": "hard"},
+        {"name": "Learning Block", "time": "19:00", "difficulty": "medium"},
+        {"name": "Daily Review", "time": "22:00", "difficulty": "easy"},
+    ],
+    "explorer": [
+        {"name": "Morning Walk", "time": "08:00", "difficulty": "easy"},
+        {"name": "Read & Explore", "time": "20:00", "difficulty": "medium"},
+        {"name": "Connect with Someone", "time": "18:00", "difficulty": "easy"},
+    ],
+}
+
+from pydantic import BaseModel
+class ArchetypeRequest(BaseModel):
+    archetype: str
+    seed_habits: bool = True
+
+@router.post("/set-archetype")
+def set_archetype(data: ArchetypeRequest, user=Depends(auth_required), db: Session = Depends(get_db)):
+    """Sets user archetype and optionally seeds archetype-appropriate starter habits."""
+    valid = ["warrior", "monk", "builder", "explorer"]
+    if data.archetype not in valid:
+        from fastapi import HTTPException
+        raise HTTPException(400, f"Invalid archetype. Choose from: {valid}")
+
+    # Update user model
+    user.archetype = data.archetype
+    # Map archetype to identity goal
+    archetype_to_goal = {
+        "warrior": "Fit", "monk": "Calm", "builder": "Productive", "explorer": "Learner"
+    }
+    user.identity_goal = archetype_to_goal.get(data.archetype, "Productive")
+    db.commit()
+
+    seeded = []
+    if data.seed_habits:
+        existing_count = db.query(Habit).filter(Habit.user_id == user.id).count()
+        # Only seed if user has < 2 habits (fresh account)
+        if existing_count < 2:
+            for h in ARCHETYPE_HABITS.get(data.archetype, []):
+                habit = Habit(user_id=user.id, **h)
+                db.add(habit)
+                seeded.append(h["name"])
+            db.commit()
+
+    return {
+        "status": "archetype_set",
+        "archetype": data.archetype,
+        "identity_goal": user.identity_goal,
+        "habits_seeded": seeded
+    }

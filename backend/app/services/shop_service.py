@@ -1,3 +1,5 @@
+from sqlalchemy.orm import Session
+from app.models.user import User
 from app.models.shop import ShopItem, UserInventory
 
 class ShopService:

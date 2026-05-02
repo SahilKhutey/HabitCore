@@ -1,5 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.services.notification_service import send_push
+from app.services.notification import notification_service
 from app.db.session import SessionLocal
 from app.models.habit import Habit
 from app.models.habit_log import HabitLog

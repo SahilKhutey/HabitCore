@@ -156,12 +156,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.bg,
+    borderColor: COLORS.background,
     zIndex: 10,
   },
   levelText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.bg,
+    color: COLORS.background,
     fontWeight: 'bold',
     fontSize: 12,
   }
