@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date, datetime, timedelta
@@ -13,6 +13,7 @@ from app.models.behavioral import UserBehaviorLog
 from app.core.habit_orchestrator import get_habit_orchestrator
 from app.services.reward_service import reward_service
 from app.services.analytics_service import AnalyticsService
+from app.services.behavioral_insight_engine.service import BehavioralInsightService
 
 router = APIRouter()
 
@@ -108,22 +109,41 @@ def get_today_status(user=Depends(auth_required), db: Session = Depends(get_db))
 @router.post("/complete")
 async def complete_habit(
     request: HabitCompletionRequest,
+    background_tasks: BackgroundTasks,
     user = Depends(auth_required),
     db: Session = Depends(get_db)
 ):
-    """Complete a habit - main orchestration endpoint"""
+    """Complete a habit — triggers reward orchestration and behavioral insight generation."""
     try:
         orchestrator = get_habit_orchestrator(db)
         result = await orchestrator.process_habit_completion(
             user.id,
             request.dict()
         )
-        
+
         if not result["success"]:
             raise HTTPException(status_code=400, detail=result["error"])
-        
+
+        # Fire behavioral insight generation in background (non-blocking)
+        def _run_insights(user_id: str):
+            from app.db.session import SessionLocal
+            bg_db = SessionLocal()
+            try:
+                habit_count = bg_db.query(Habit).filter(
+                    Habit.user_id == user_id,
+                    Habit.is_active == True,
+                ).count()
+                svc = BehavioralInsightService(bg_db)
+                svc.run_for_user(user_id=user_id, habit_count=habit_count)
+            except Exception as e:
+                print(f"[InsightEngine] Background run error: {e}")
+            finally:
+                bg_db.close()
+
+        background_tasks.add_task(_run_insights, str(user.id))
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

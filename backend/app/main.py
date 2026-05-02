@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, avatar_routes
+from app.services.behavioral_insight_engine.routes import router as insights_router
 from app.db.session import engine
 from app.db.declarative import Base
 import app.db.base
@@ -16,9 +17,13 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8081",
         "http://localhost:8082",
+        "http://localhost:8083",
+        "http://localhost:8084",
         "http://localhost:5173",
         "http://127.0.0.1:8081",
         "http://127.0.0.1:8082",
+        "http://127.0.0.1:8083",
+        "http://127.0.0.1:8084",
         "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
@@ -64,6 +69,7 @@ app.include_router(analytics.router, prefix="/analytics")
 app.include_router(gamification.router, prefix="/gamification")
 app.include_router(psychological.router, prefix="/psychological")
 app.include_router(avatar_routes.router, prefix="/api/avatar", tags=["avatar"])
+app.include_router(insights_router, prefix="/insights", tags=["behavioral-insights"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
