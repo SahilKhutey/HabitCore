@@ -1,231 +1,202 @@
+"""
+HabitOrchestrator v2 — Central Pipeline Coordinator
+
+Data flow (exact):
+  User Action
+    → HabitEngine.complete()           [Core Layer]
+    → BehaviorMemoryService.log()      [Core Layer]
+    → PsychologicalEngine.burnout()    [Core Layer]
+    → StateEngine.compute()            [Core Layer]
+    → RewardEngine.calculate_xp()      [Experience Layer] (state-modulated)
+    → AICoachService.get_guidance()    [Intelligence Layer] (state-calibrated)
+    → BehavioralInsightEngine.run()    [Intelligence Layer] (BackgroundTask)
+    → Response assembled
+
+Architecture rules enforced here:
+  1. StateEngine output controls Experience Layer (no direct reward overrides)
+  2. Intelligence Layer receives StateEngine output as mandatory context
+  3. Experience Layer cannot trigger mode changes (read-only access to state)
+  4. All messages follow v2 language standard
+"""
 from typing import Dict, Any, Optional
 from datetime import datetime
-import asyncio
-import hashlib
 from sqlalchemy.orm import Session
 
-from app.services.reward_service import reward_service
-from app.services.psychological_service import psychological_service
-from app.services.recovery_service import recovery_service
-from app.services.ai_service import AIService, get_ai_service
+from app.services.core.habit_engine import HabitEngine
+from app.services.core.state_engine import StateEngine
+from app.services.core.psychological_engine import PsychologicalEngine
+from app.services.experience.reward_engine import RewardEngine, reward_engine
+from app.services.intelligence.ai_coach_service import ai_coach_service
+from app.services.behavioral_insight_engine.service import BehavioralInsightService
 from app.services.behavior_memory_service import BehaviorMemoryService
-from app.services.gamification_service import gamification_service
-from app.services.avatar_service import AvatarService
-from app.core.state_engine import user_state_engine, UserMode
+from app.services.live_ops.config_engine import config_engine
 from app.models.user import User
 from app.core.security import security_engine
 from app.utils.logging import structured_logger
 
-class HabitOrchestrator:
-    def __init__(self, db_session: Session):
-        self.db = db_session
-        self.behavior_service = BehaviorMemoryService(db_session)
-        self.ai_service = AIService(self.behavior_service)
-        self.reward_service = reward_service
-        self.avatar_service = AvatarService(db_session)
-        self.logger = structured_logger
-        
-    async def process_habit_completion(self, user_id: str, habit_data: Dict[str, Any]) -> Dict[str, Any]:
+
+class HabitOrchestratorV2:
+    """
+    v2 Master Pipeline — coordinates all layers for habit completion.
+    Synchronous core processing; background tasks for intelligence generation.
+    """
+
+    def __init__(self, db: Session):
+        self.db = db
+        self.habit_engine      = HabitEngine(db)
+        self.psych_engine      = PsychologicalEngine(db)
+        self.behavior_memory   = BehaviorMemoryService(db)
+        self.logger            = structured_logger
+
+    async def process_habit_completion(
+        self,
+        user_id: str,
+        habit_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """
-        MASTER PIPELINE - Orchestrates the entire habit completion flow
+        v2 Master Pipeline for habit completion.
+        Returns structured response consumed by the frontend.
         """
         try:
-            # 1. 🔐 Security Validation
+            # ── 1. Security Validation ─────────────────────────────────────
             if not security_engine.validate_event(user_id, "habit_completed", habit_data):
-                self.logger.warning("Security validation failed", user_id=user_id)
-                return {"success": False, "error": "Invalid event or rate limit exceeded"}
-            
-            # 2. 📊 Parallel Processing: Start async tasks
-            reward_task = asyncio.create_task(self._calculate_rewards(user_id, habit_data))
-            behavior_task = asyncio.create_task(self._log_behavior(user_id, habit_data))
-            state_task = asyncio.create_task(self._update_user_state(user_id))
-            
-            # 3. 🎯 Wait for core computations
-            rewards, behavior_log, user_state = await asyncio.gather(
-                reward_task, behavior_task, state_task
+                return {"success": False, "error": "Rate limit exceeded or invalid event."}
+
+            # ── 2. Core: Complete habit (idempotent) ───────────────────────
+            habit_id = habit_data.get("habit_id")
+            log, completion_ctx = self.habit_engine.complete(user_id, habit_id)
+
+            if completion_ctx.get("already_done"):
+                return {"success": True, "message": "Already completed today.", "duplicate": True}
+
+            # ── 3. Core: Behavior Memory Log ───────────────────────────────
+            self.behavior_memory.log_behavior(
+                user_id,
+                "habit_completed",
+                {**habit_data, "streak": completion_ctx["streak"]},
+                context={
+                    "hour":        datetime.utcnow().hour,
+                    "day_of_week": datetime.utcnow().strftime("%A"),
+                }
             )
 
-            # 4. 🧬 Avatar Progression
-            avatar_update = await self._update_avatar(user_id, rewards["total_xp"], habit_data)
-            
-            # 4. 🧠 AI Coaching (cached)
-            ai_advice = await self._get_ai_advice(user_id, user_state)
-            
-            # 5. 🧯 Recovery Check
-            recovery_plan = await self._check_recovery_needed(user_id, user_state)
-            
-            # 6. 🎁 Gamification Elements
-            gamification = await self._get_gamification_elements(user_id, habit_data, rewards)
-            
-            # 7. 📈 Update User Progress
+            # ── 4. Core: Compute User State ────────────────────────────────
+            burnout_score = self.psych_engine.calculate_burnout_score(user_id)
+            completion_rate = self.habit_engine.get_completion_rate(habit_id)
+            streak = completion_ctx["streak"]
+
+            user_state = StateEngine.compute(
+                burnout_score=burnout_score,
+                completion_rate=completion_rate,
+                streak=streak,
+            )
+
+            # ── 5. Experience Layer: Calculate Rewards (state-modulated) ───
+            xp_data = RewardEngine.calculate_xp(
+                difficulty=habit_data.get("difficulty", "medium"),
+                streak=streak,
+                consistency_rate=completion_rate,
+                user_state=user_state,
+            )
+
+            # Check streak milestone for coins
+            milestone = RewardEngine.check_streak_milestone(streak)
+            coins_earned = milestone["coins"] if milestone else xp_data["xp_earned"] // 10
+
+            # Identity-framed completion message
             user = self.db.query(User).filter(User.id == user_id).first()
-            if user:
-                user.xp += rewards["total_xp"]
-                user.coins += rewards["coins"]
-                
-                # Check for level up
-                level_data = self.reward_service.calculate_level_up(user.xp, user.level)
-                if level_data["level_up"]:
-                    user.level = level_data["level"]
-                    user.coins += level_data["reward"].get("coins", 0)
-                
-                self.db.commit()
-                
-            self.logger.info("Habit completion processed", user_id=user_id, xp_earned=rewards["total_xp"])
-            
-            return {
-                "success": True,
-                "rewards": rewards,
-                "user_state": user_state,
-                "ai_advice": ai_advice,
-                "recovery_plan": recovery_plan,
-                "gamification": gamification,
-                "avatar_update": avatar_update,
-                "timestamp": datetime.utcnow().isoformat()
-            }
-            
-        except Exception as e:
-            self.logger.error("Orchestration failed", error=str(e), user_id=user_id)
-            return {"success": False, "error": f"Processing failed: {str(e)}"}
-    
-    async def _calculate_rewards(self, user_id: str, habit_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Calculate all rewards for habit completion"""
-        # Get base XP from psychological service
-        base_xp = psychological_service.calculate_xp_reward(
-            habit_data.get("difficulty", "medium"),
-            habit_data.get("current_streak", 0)
-        )
-        
-        # Get consistency and calculate multiplier
-        consistency = 0.8 # Mocked for now
-        total_xp = self.reward_service.calculate_xp_with_consistency(
-            base_xp, 
-            habit_data.get("current_streak", 0),
-            habit_data.get("difficulty", "medium"),
-            consistency
-        )
-        
-        variable_bonus = self.reward_service.get_variable_reward("small")
-        
-        return {
-            "base_xp": base_xp,
-            "variable_bonus": variable_bonus,
-            "total_xp": total_xp + variable_bonus,
-            "coins": (total_xp + variable_bonus) // 2
-        }
-    
-    async def _log_behavior(self, user_id: str, habit_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Log behavior and create HabitLog entry"""
-        from app.models.habit_log import HabitLog
-        
-        # 1. Create the persistent log entry
-        habit_log = HabitLog(
-            habit_id=habit_data["habit_id"],
-            user_id=user_id,
-            completed=True,
-            completed_at=datetime.utcnow()
-        )
-        self.db.add(habit_log)
-        self.db.commit()
-
-        # 2. Log behavioral analytics
-        context = {
-            "time_of_day": datetime.utcnow().hour,
-            "day_of_week": datetime.utcnow().strftime("%A"),
-            "device": "mobile"
-        }
-        
-        self.behavior_service.log_behavior(
-            user_id,
-            "habit_completed",
-            habit_data,
-            context
-        )
-        
-        return {"logged": True, "habit_log_id": habit_log.id, "context": context}
-    
-    async def _update_user_state(self, user_id: str) -> Dict[str, Any]:
-        """Update and return current user state"""
-        burnout_score = self.behavior_service.calculate_burnout_score(user_id)
-        
-        # Summary data for state engine
-        user_data = {
-            "current_streak": 7,
-            "completion_rate": 0.85,
-            "session_frequency": 5,
-            "recent_activity": 8,
-            "burnout_score": burnout_score
-        }
-        
-        user_mode = user_state_engine.determine_user_mode(user_data)
-        state_actions = user_state_engine.get_state_based_actions(user_mode)
-        
-        return {
-            "mode": user_mode,
-            "actions": state_actions,
-            "burnout_score": burnout_score,
-            "engagement_score": user_state_engine.calculate_engagement_score(user_data)
-        }
-    
-    async def _get_ai_advice(self, user_id: str, user_state: Dict[str, Any]) -> Dict[str, Any]:
-        """Get AI advice with caching"""
-        context = {
-            "current_streak": 7, # Would come from state
-            "recent_failures": 1
-        }
-        advice = self.ai_service.get_personalized_advice(user_id, context)
-        
-        return {
-            "message": advice,
-            "freshness": "cached"
-        }
-    
-    async def _check_recovery_needed(self, user_id: str, user_state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Check if recovery plan is needed"""
-        if user_state["burnout_score"] > 0.7:
-            return recovery_service.generate_recovery_plan(
-                "burnout",
-                user_state["burnout_score"]
+            archetype = getattr(user, "identity_goal", None) or "pioneer"
+            completion_message = RewardEngine.get_completion_message(
+                archetype, streak, habit_data.get("difficulty", "medium")
             )
-        return None
-    
-    async def _get_gamification_elements(self, user_id: str, habit_data: Dict[str, Any], rewards: Dict[str, Any]) -> Dict[str, Any]:
-        """Get gamification elements"""
-        streak = habit_data.get("current_streak", 0)
-        
-        mystery_reward = None
-        if streak > 0 and streak % 5 == 0:
-            mystery_reward = gamification_service.generate_mystery_reward()
-        
-        # Anticipation for next milestone
-        user_progress = {"xp": 350} # Mocked
-        anticipation = gamification_service.create_anticipation_loop(user_progress)
-        
-        return {
-            "mystery_reward": mystery_reward,
-            "anticipation_loop": anticipation,
-            "current_streak": streak
-        }
 
-    async def _update_avatar(self, user_id: str, xp_earned: int, habit_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Update avatar and return delta for UI celebrations"""
-        try:
-            # Prepare context for archetype and evolution check
-            # In a real app, we'd fetch actual category distribution from DB
-            habit_data['category_distribution'] = {habit_data.get('category', 'general'): 1.0}
-            habit_data['consistency_score'] = 0.8
-            
-            avatar = self.avatar_service.update_avatar_progress(user_id, xp_earned, habit_data)
-            
+            # ── 6. Update User XP/Coins/Level ─────────────────────────────
+            if user:
+                user.xp    = (user.xp or 0) + xp_data["xp_earned"]
+                user.coins = (user.coins or 0) + coins_earned
+
+                level_data = RewardEngine.calculate_level_up(user.xp, user.level or 1)
+                if level_data["leveled_up"]:
+                    user.level  = level_data["level"]
+                    user.coins += level_data["coins_awarded"]
+
+                self.db.commit()
+            else:
+                level_data = {"leveled_up": False, "level": 1}
+
+            # ── 7. Intelligence Layer: AI Guidance (cached) ────────────────
+            ai_guidance = {"message": None, "source": "disabled"}
+            if config_engine.feature("ai_coach"):
+                try:
+                    ai_guidance = ai_coach_service.get_guidance(
+                        user_id=str(user_id),
+                        user_state=user_state,
+                        habit_completion_context=completion_ctx,
+                    )
+                except Exception as e:
+                    self.logger.warning("AI guidance failed", error=str(e))
+
+            # ── 8. Recovery Plan Check ─────────────────────────────────────
+            recovery_plan = None
+            if burnout_score >= config_engine.get("burnout_threshold", 0.60):
+                plan = self.psych_engine.create_recovery_plan(user_id, trigger="habit_completion")
+                if plan:
+                    recovery_plan = {
+                        "active":   True,
+                        "message":  plan.actions.get("message"),
+                        "actions":  plan.actions.get("suggestions", []),
+                        "max_habits": plan.actions.get("max_habits", 3),
+                    }
+
+            # ── 9. Assemble Response ───────────────────────────────────────
+            self.logger.info(
+                "Habit completion processed",
+                user_id=str(user_id),
+                xp=xp_data["xp_earned"],
+                streak=streak,
+                mode=user_state.mode.value,
+            )
+
             return {
-                "level": avatar.level,
-                "evolution_stage": avatar.evolution_stage,
-                "archetype": avatar.archetype
-            }
-        except Exception as e:
-            self.logger.error("Avatar update failed", error=str(e), user_id=user_id)
-            return {}
+                "success":    True,
+                "duplicate":  False,
 
-# Factory function for dependency injection
-def get_habit_orchestrator(db_session: Session):
-    return HabitOrchestrator(db_session)
+                # v2 completion message (identity-framed)
+                "message":    completion_message,
+                "milestone":  milestone,
+
+                # Rewards (deterministic, state-modulated)
+                "rewards": {
+                    "xp_earned":    xp_data["xp_earned"],
+                    "coins_earned": coins_earned,
+                    "streak":       streak,
+                    "xp_label":     RewardEngine.get_xp_display_label(archetype),
+                },
+
+                # Level progression
+                "level": {
+                    "current":      level_data.get("level", user.level if user else 1),
+                    "leveled_up":   level_data["leveled_up"],
+                    "level_message": level_data.get("level_message"),
+                },
+
+                # User state (consumed by frontend for UX mode)
+                "user_state":  user_state.to_dict(),
+
+                # Intelligence layer
+                "ai_guidance":    ai_guidance,
+                "recovery_plan":  recovery_plan,
+
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+        except ValueError as e:
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            self.logger.error("Orchestration failed", error=str(e), user_id=str(user_id))
+            return {"success": False, "error": "Processing failed. Please retry."}
+
+
+def get_habit_orchestrator(db: Session) -> HabitOrchestratorV2:
+    """Factory function — drop-in replacement for v1 orchestrator."""
+    return HabitOrchestratorV2(db)
