@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, avatar_routes
 from app.services.behavioral_insight_engine.routes import router as insights_router
+from app.services.cognitive_engine.routes import router as cognitive_router
 from app.db.session import engine
 from app.db.declarative import Base
 import app.db.base
@@ -70,6 +71,7 @@ app.include_router(gamification.router, prefix="/gamification")
 app.include_router(psychological.router, prefix="/psychological")
 app.include_router(avatar_routes.router, prefix="/api/avatar", tags=["avatar"])
 app.include_router(insights_router, prefix="/insights", tags=["behavioral-insights"])
+app.include_router(cognitive_router, prefix="/cognitive", tags=["cognitive-engine"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
