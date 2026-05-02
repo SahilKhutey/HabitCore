@@ -357,7 +357,7 @@ class Nudge(Base):
     delivered = Column(Boolean, default=False)
     acted = Column(Boolean, default=False)
     
-    metadata = Column(JSON, nullable=True) # { "pattern_id": "...", "confidence": 0.9 }
+    metadata_json = Column(JSON, nullable=True) # { "pattern_id": "...", "confidence": 0.9 }
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
 
 class NudgeFeedback(Base):

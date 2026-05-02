@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.intelligence_models import Question, QuestionStats, UserQuestionHistory
 from datetime import datetime, timezone
 
-def select_adaptive_questions_v3(db: Session, user_id: str, signals: Dict[str, Any]) -> List[Question]:
+def select_adaptive_questions_v2(db: Session, user_id: str, signals: Dict[str, Any]) -> List[Question]:
     """
     Selects 3 questions using V3 Intelligence Layer:
     1. Fetch candidates with Novelty Ranking

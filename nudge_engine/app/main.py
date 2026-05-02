@@ -51,7 +51,7 @@ def handle_pattern(pattern):
     with engine.connect() as conn:
         conn.execute(
             text("""
-                INSERT INTO nudges (id, user_id, type, trigger_pattern, message, priority, metadata, created_at)
+                INSERT INTO nudges (id, user_id, type, trigger_pattern, message, priority, metadata_json, created_at)
                 VALUES (:id, :u, :t, :tp, :m, :p, :meta, :ca)
             """),
             {

@@ -21,3 +21,4 @@ openai
 pytest
 pytest-asyncio
 httpx
+kafka-python

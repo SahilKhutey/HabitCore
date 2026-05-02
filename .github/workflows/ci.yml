@@ -23,6 +23,6 @@ jobs:
         pip install pytest pytest-mock httpx
     - name: Run tests
       run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/backend
         cd backend
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
         python -m pytest

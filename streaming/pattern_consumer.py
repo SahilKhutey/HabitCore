@@ -7,6 +7,7 @@ import json
 from kafka import KafkaConsumer
 from sqlalchemy import create_engine, text
 from datetime import datetime, timezone
+import uuid
 
 # Path for app config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend')))
@@ -40,15 +41,16 @@ for msg in consumer:
     with engine.connect() as conn:
         conn.execute(
             text("""
-                INSERT INTO patterns (user_id, pattern_type, confidence, metadata, created_at)
-                VALUES (:user_id, :p_type, :confidence, :metadata, :created_at)
+                INSERT INTO patterns (id, user_id, pattern_type, confidence, trigger_conditions, detected_at)
+                VALUES (:id, :user_id, :p_type, :confidence, :triggers, :detected_at)
             """),
             {
+                "id": str(uuid.uuid4()),
                 "user_id": user_id,
                 "p_type": p_type,
                 "confidence": pattern.get("confidence", 0.0),
-                "metadata": json.dumps(pattern.get("metadata", {})),
-                "created_at": datetime.now(timezone.utc)
+                "triggers": json.dumps(pattern.get("metadata", {})),
+                "detected_at": datetime.now(timezone.utc)
             }
         )
         conn.commit()
