@@ -4,6 +4,7 @@ from app.api.routes import auth, habits, users, payments, referrals, admin, pref
 from app.services.behavioral_insight_engine.routes import router as insights_router
 from app.services.cognitive_engine.routes import router as cognitive_router
 from app.services.cognitive_training_system.routes import router as cbts_router
+from app.services.behavioral_feedback_engine.routes import router as bfe_router
 from app.db.session import engine
 from app.db.declarative import Base
 import app.db.base
@@ -74,6 +75,7 @@ app.include_router(avatar_routes.router, prefix="/api/avatar", tags=["avatar"])
 app.include_router(insights_router, prefix="/insights", tags=["behavioral-insights"])
 app.include_router(cognitive_router, prefix="/cognitive", tags=["cognitive-engine"])
 app.include_router(cbts_router, prefix="/cognitive-training", tags=["cognitive-training-system"])
+app.include_router(bfe_router, prefix="/bfe", tags=["behavioral-feedback-engine"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
