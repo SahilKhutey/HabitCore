@@ -1,7 +1,7 @@
-from sqlalchemy import Column, String, Integer, Boolean, DateTime
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, JSON
 from app.db.declarative import Base
 import uuid
-from datetime import datetime, timezone
+import datetime
 
 
 class User(Base):
@@ -33,6 +33,13 @@ class User(Base):
     identity_level = Column(String, default="beginner") # beginner, builder, disciplined, elite
     archetype = Column(String, nullable=True) # warrior, monk, achiever, explorer
     daily_habit_goal = Column(Integer, default=3)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    
+    # Intelligence Enrichment
+    timezone         = Column(String, default='UTC')
+    onboarding_state = Column(JSON)
+    identity_profile = Column(JSON)
+    cognitive_level  = Column(Integer, default=1)
+
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc), onupdate=lambda: datetime.datetime.now(datetime.timezone.utc))
 

@@ -12,3 +12,4 @@ from app.services.behavioral_insight_engine.models import BehavioralInsight
 from app.models.cognitive_day_log import CognitiveDayLog
 from app.models.cognitive_skill_state import CognitiveSkillState
 from app.models.user_behavior_state import UserBehaviorState
+from app.models.intelligence_models import DailyLog, Event, DerivedSignal, Pattern, Insight, Score, IdentityTracking, LoopDetection
