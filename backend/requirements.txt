@@ -15,3 +15,5 @@ openai
 pytest
 pytest-asyncio
 httpx
+scikit-learn
+redis

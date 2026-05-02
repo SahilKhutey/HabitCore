@@ -13,12 +13,10 @@ from app.models.user_behavior_state import UserBehaviorState
 from app.core.intelligence_primitives import EventType, EventCategory, UserState, InsightType, LoopType
 
 # Import existing engine logic for reuse/adaptation
-from app.services.behavioral_feedback_engine.pattern_engine import PatternEngine
-from app.services.behavioral_feedback_engine.adaptive_engine import AdaptiveEngine
-from app.services.behavioral_feedback_engine.scoring_engine import BFEScoringEngine, RetentionSystem
-from app.services.behavioral_feedback_engine.insight_engine import InsightEngine
-from app.services.cognitive_engine.feature_builder import FeatureBuilder
-from app.services.cognitive_engine.thought_processor import ThoughtProcessor
+from app.services.intelligence_pipeline.normalization.normalize import normalize_event
+from app.services.intelligence_pipeline.feature_engine.builders import DailyFeatureBuilder, RollingFeatureBuilder
+from app.services.intelligence_pipeline.orchestrator import generate_patterns
+from app.services.intelligence_pipeline.feedback import FeedbackProcessor
 
 class IntelligencePipeline:
     def __init__(self, db: Session):
@@ -47,13 +45,15 @@ class IntelligencePipeline:
             if hasattr(log, key):
                 setattr(log, key, value)
         
-        # Automated thought processing if key_thought is provided
+        # Automated thought processing
         if log.key_thought and not log.distortion_type:
+            # Note: keeping thought processor for reframe logic
+            from app.services.cognitive_engine.thought_processor import ThoughtProcessor
             analysis = ThoughtProcessor.classify_thought(log.key_thought)
             log.thought_label = analysis.get("polarity")
             log.distortion_type = analysis.get("distortion")
 
-        # Ingest events based on log
+        # Ingest event based on log
         if log.avoidance_flag:
             self.ingest_event(user_id, EventType.HABIT_SKIPPED, EventCategory.BEHAVIOR, 1.0, {"source": "daily_log"})
         
@@ -61,16 +61,24 @@ class IntelligencePipeline:
         return log
 
     def ingest_event(self, user_id: str, event_type: EventType, category: EventCategory, value: float = 1.0, metadata: Dict[str, Any] = None) -> Event:
-        """
-        Saves a raw event for time-series analysis.
-        """
+        """Saves a normalized raw event."""
+        raw_event = {
+            "user_id": user_id,
+            "event_type": event_type.value,
+            "event_category": category.value,
+            "event_value": value,
+            "metadata": metadata or {},
+            "created_at": datetime.utcnow()
+        }
+        normalized = normalize_event(raw_event)
+        
         event = Event(
-            user_id=str(user_id),
-            event_type=event_type.value,
-            event_category=category.value,
-            event_value=value,
-            metadata_json=metadata or {},
-            created_at=datetime.utcnow()
+            user_id=normalized["user_id"],
+            event_type=normalized["type"],
+            event_category=normalized["category"],
+            event_value=normalized["value"],
+            metadata_json=normalized["metadata"],
+            created_at=normalized["timestamp"]
         )
         self.db.add(event)
         self.db.flush()
@@ -90,11 +98,21 @@ class IntelligencePipeline:
             Event.created_at <= datetime.combine(log_date, datetime.max.time())
         ).all()
 
-        # Build feature set
-        # Note: We adapt FeatureBuilder to work with the new models if needed, 
-        # or just pass a window including today.
-        history = self._get_recent_logs(user_id, days=14)
-        features = FeatureBuilder.build(history)
+        # Build feature sets
+        history_logs = self._get_recent_logs(user_id, days=14)
+        
+        # Build daily feature history
+        history_features = []
+        for h_log in history_logs:
+            h_events = self.db.query(Event).filter(
+                Event.user_id == str(user_id),
+                Event.created_at >= datetime.combine(h_log.date, datetime.min.time()),
+                Event.created_at <= datetime.combine(h_log.date, datetime.max.time())
+            ).all()
+            history_features.append(DailyFeatureBuilder.build(h_events, h_log))
+
+        today_features = history_features[-1] if history_features else {}
+        rolling_features = RollingFeatureBuilder.build(history_features)
 
         # Create Signal record
         signal = self.db.query(DerivedSignal).filter(
@@ -106,22 +124,20 @@ class IntelligencePipeline:
             signal = DerivedSignal(user_id=str(user_id), date=log_date)
             self.db.add(signal)
 
-        # Map features to signals
-        signal.execution_score = features.get("progress_ratio", 0.0)
-        signal.avoidance_score  = features.get("avoidance_rate", 0.0)
-        signal.cognitive_score  = features.get("negative_thought_ratio", 0.0) # Inverted context
-        signal.integrity_score  = features.get("integrity_score", 0.0)
-        
-        # Focus score from events
-        deep_mins = sum(e.event_value for e in events if e.event_type == EventType.DEEP_WORK.value)
-        dist_mins = sum(e.event_value for e in events if e.event_type == EventType.DISTRACTION.value)
-        signal.deep_work_minutes = int(deep_mins)
-        signal.distraction_minutes = int(dist_mins)
-        signal.focus_score = deep_mins / (deep_mins + dist_mins) if (deep_mins + dist_mins) > 0 else 0.5
+        # Map to signals
+        signal.execution_score = today_features.get("focus_ratio", 0.0)
+        signal.avoidance_score  = float(today_features.get("avoidance_flag", 0))
+        signal.cognitive_score  = float(today_features.get("negative_thought_count", 0))
+        signal.integrity_score  = getattr(log, "self_integrity_score", 0.0)
+        signal.deep_work_minutes = today_features.get("deep_work_minutes", 0)
+        signal.distraction_minutes = today_features.get("distraction_minutes", 0)
 
         # Create Score record
-        state = AdaptiveEngine.determine_state(features)
-        b_score = BFEScoringEngine.compute(log, state, features)
+        from app.services.behavioral_feedback_engine.adaptive_engine import AdaptiveEngine
+        from app.services.behavioral_feedback_engine.scoring_engine import BFEScoringEngine
+        
+        state = AdaptiveEngine.determine_state(rolling_features)
+        b_score = BFEScoringEngine.compute(log, state, rolling_features)
         
         score_rec = self.db.query(Score).filter(Score.user_id == str(user_id), Score.date == log_date).first()
         if not score_rec:
@@ -154,15 +170,22 @@ class IntelligencePipeline:
     # ── Step 3: Pattern & Loop Engine ───────────────────────────────────────
 
     def run_pattern_engine(self, user_id: str):
-        """
-        Detects patterns and loops over the last 14 days.
-        """
-        history = self._get_recent_logs(user_id, days=14)
-        if not history:
+        """Detects patterns and loops over the last 14 days."""
+        history_logs = self._get_recent_logs(user_id, days=14)
+        history_features = []
+        for h_log in history_logs:
+            h_events = self.db.query(Event).filter(
+                Event.user_id == str(user_id),
+                Event.created_at >= datetime.combine(h_log.date, datetime.min.time()),
+                Event.created_at <= datetime.combine(h_log.date, datetime.max.time())
+            ).all()
+            history_features.append(DailyFeatureBuilder.build(h_events, h_log))
+
+        if not history_features:
             return
 
-        # Detect Patterns
-        detected_patterns = PatternEngine.detect_all(history, window_days=14)
+        # Detect Patterns via Orchestrator
+        detected_patterns = generate_patterns(history_features)
         for dp in detected_patterns:
             # Update or create pattern
             pat = self.db.query(Pattern).filter(
@@ -246,13 +269,21 @@ class IntelligencePipeline:
     # ── Step 5: Adaptive Engine (State Update) ──────────────────────────────
 
     def update_user_state(self, user_id: str):
-        """
-        Updates the global UserBehaviorState and User cognitive level.
-        """
-        history = self._get_recent_logs(user_id, days=14)
-        features = FeatureBuilder.build(history)
+        """Updates the global UserBehaviorState and User cognitive level."""
+        history_logs = self._get_recent_logs(user_id, days=14)
+        history_features = []
+        for h_log in history_logs:
+            h_events = self.db.query(Event).filter(
+                Event.user_id == str(user_id),
+                Event.created_at >= datetime.combine(h_log.date, datetime.min.time()),
+                Event.created_at <= datetime.combine(h_log.date, datetime.max.time())
+            ).all()
+            history_features.append(DailyFeatureBuilder.build(h_events, h_log))
+            
+        rolling_features = RollingFeatureBuilder.build(history_features)
         
-        current_state = AdaptiveEngine.determine_state(features)
+        from app.services.behavioral_feedback_engine.adaptive_engine import AdaptiveEngine
+        current_state = AdaptiveEngine.determine_state(rolling_features)
         directives = AdaptiveEngine.produce_directives(current_state)
         
         # Update UserBehaviorState
