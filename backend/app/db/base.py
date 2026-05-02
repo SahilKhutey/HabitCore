@@ -10,3 +10,4 @@ from app.models.psychological import DailyCheckin
 from app.models.behavioral import BehaviorPattern, UserBehaviorLog, RecoveryPlan
 from app.services.behavioral_insight_engine.models import BehavioralInsight
 from app.models.cognitive_day_log import CognitiveDayLog
+from app.models.cognitive_skill_state import CognitiveSkillState
