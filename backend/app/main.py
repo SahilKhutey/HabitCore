@@ -6,6 +6,8 @@ from app.services.cognitive_engine.routes import router as cognitive_router
 from app.services.cognitive_training_system.routes import router as cbts_router
 from app.services.behavioral_feedback_engine.routes import router as bfe_router
 from app.api.routes.intelligence import router as intelligence_router
+from app.api.routes.intelligence_v2 import router as intelligence_v2_router
+from app.services.reflection_engine.routes import router as reflection_router
 from app.db.session import engine
 from app.db.declarative import Base
 import app.db.base
@@ -78,6 +80,8 @@ app.include_router(cognitive_router, prefix="/cognitive", tags=["cognitive-engin
 app.include_router(cbts_router, prefix="/cognitive-training", tags=["cognitive-training-system"])
 app.include_router(bfe_router, prefix="/bfe", tags=["behavioral-feedback-engine"])
 app.include_router(intelligence_router, prefix="/intelligence", tags=["behavioral-intelligence"])
+app.include_router(intelligence_v2_router, prefix="/intelligence/v2", tags=["behavioral-intelligence-v2"])
+app.include_router(reflection_router, prefix="/reflection", tags=["reflection-engine"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

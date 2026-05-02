@@ -10,10 +10,14 @@ firebase-admin
 apscheduler
 pydantic-settings
 python-json-logger
-numpy
+# Data Science & Pipelines
+numpy==1.24.3
+pandas==2.0.3
+scikit-learn==1.2.2
+joblib==1.2.0
+apache-airflow==2.6.3
+redis==4.5.5
 openai
 pytest
 pytest-asyncio
 httpx
-scikit-learn
-redis

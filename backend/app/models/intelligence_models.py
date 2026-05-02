@@ -212,3 +212,163 @@ class LoopDetection(Base):
 
     detected_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
     last_seen   = Column(DateTime)
+
+
+# ── 9. MODEL_REGISTRY (ML Ops) ──────────────────────────────────────────────
+
+class ModelRegistry(Base):
+    __tablename__ = "model_registry"
+
+    id      = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name    = Column(String, index=True) # e.g. avoidance_model
+    version = Column(Integer, default=1)
+    feature_version = Column(String, default="v2.0_behavior_aware")
+    
+    path    = Column(String) # path to serialized model file
+    
+    # Metrics
+    accuracy = Column(Float)
+    recall   = Column(Float, default=0.0)
+    precision = Column(Float, default=0.0)
+    
+    status = Column(String, default="staging") # staging, production, archived
+    metadata_json = Column(JSON) # model parameters, training date range
+    
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class PredictionLog(Base):
+    __tablename__ = "prediction_logs"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, index=True)
+    model_id = Column(String, ForeignKey("model_registry.id"))
+    
+    input_features = Column(JSON) # Snapshot of features used
+    prediction = Column(Float) # The probability output
+    actual_outcome = Column(Boolean, nullable=True) # Filled later for retraining
+    
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class InsightFeedback(Base):
+    __tablename__ = "insight_feedback"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    insight_id = Column(String, ForeignKey("insights.id"))
+    user_id = Column(String, index=True)
+    
+    is_helpful = Column(Boolean)
+    action_taken = Column(Boolean, default=False)
+    feedback_text = Column(String, nullable=True)
+    
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class Question(Base):
+    __tablename__ = "questions"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    category = Column(String)
+    subcategory = Column(String)
+    
+    text = Column(String, nullable=False)
+    intent = Column(String)
+    
+    depth_level = Column(Integer, default=1) # 1-3
+    emotional_intensity = Column(Float, default=0.5)
+    
+    trigger_types = Column(JSON) # ["avoidance_high", "low_energy", etc.]
+    
+    # NEW: Semantic Intelligence Fields
+    semantic_tags = Column(JSON) # ["avoidance", "fear", "discomfort"]
+    cognitive_type = Column(String) # "awareness", "distortion", "behavioral_probe"
+    emotional_weight = Column(Integer, default=1) # 1-5
+    novelty_score = Column(Float, default=1.0)
+    cooldown_days = Column(Integer, default=3)
+    
+    difficulty_weight = Column(Float, default=0.5)
+    base_priority = Column(Float, default=0.5)
+    
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class QuestionStats(Base):
+    __tablename__ = "question_stats"
+
+    question_id = Column(String, ForeignKey("questions.id"), primary_key=True)
+    
+    times_shown = Column(Integer, default=0)
+    times_answered = Column(Integer, default=0)
+    times_skipped = Column(Integer, default=0)
+    
+    avg_response_time = Column(Float, default=0.0)
+    effectiveness_score = Column(Float, default=0.0) # Behavior improvement metric
+    
+    last_shown_at = Column(DateTime)
+    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class UserQuestionHistory(Base):
+    __tablename__ = "user_question_history"
+
+    user_id = Column(String, index=True, primary_key=True)
+    question_id = Column(String, ForeignKey("questions.id"), primary_key=True)
+    
+    last_shown_at = Column(DateTime)
+    times_seen = Column(Integer, default=0)
+
+class QuestionUsageLog(Base):
+    __tablename__ = "question_usage_logs"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, index=True)
+    question_id = Column(String, ForeignKey("questions.id"))
+    date = Column(Date)
+    response = Column(String, nullable=True)
+    response_time_seconds = Column(Integer, nullable=True)
+    skipped = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class CognitiveSignal(Base):
+    __tablename__ = "cognitive_signals"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, index=True)
+    date = Column(Date, index=True)
+    
+    # Extracted Insights
+    emotion = Column(String) # low_energy, anxiety, etc.
+    state = Column(String) # avoidance, rumination, flow
+    distortions = Column(JSON) # ["overgeneralization", "catastrophizing"]
+    behaviors = Column(JSON) # ["distraction", "deep_work"]
+    
+    raw_text = Column(String)
+    usage_log_id = Column(String, ForeignKey("question_usage_logs.id"))
+    
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class Nudge(Base):
+    __tablename__ = "nudges"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, index=True)
+    type = Column(String) # interrupt, redirect, reflective, reinforcement
+    trigger_pattern = Column(String)
+    message = Column(String)
+    priority = Column(Integer, default=1)
+    
+    delivered = Column(Boolean, default=False)
+    acted = Column(Boolean, default=False)
+    
+    metadata = Column(JSON, nullable=True) # { "pattern_id": "...", "confidence": 0.9 }
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+
+class NudgeFeedback(Base):
+    __tablename__ = "nudge_feedback"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    nudge_id = Column(String, ForeignKey("nudges.id"))
+    user_id = Column(String, index=True)
+    
+    action_taken = Column(Boolean, default=False)
+    dismissed = Column(Boolean, default=False)
+    response_time_ms = Column(Integer, nullable=True)
+    
+    timestamp = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))

@@ -1,0 +1,6 @@
+kafka-python
+apache-flink
+sqlalchemy
+psycopg2-binary
+pydantic
+requests

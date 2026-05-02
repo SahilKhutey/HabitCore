@@ -1,0 +1,2432 @@
+[
+  {
+    "category": "awareness",
+    "subcategory": "emotion_tracking",
+    "depth": 1,
+    "intensity": 0.3,
+    "trigger_types": [],
+    "priority": 0.6,
+    "question": "What emotion did I feel most today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "mood_shift",
+    "depth": 1,
+    "intensity": 0.4,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did my mood shift today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "emotional_highlight",
+    "depth": 1,
+    "intensity": 0.4,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What moment stood out emotionally?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "presence",
+    "depth": 2,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel most present?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "disconnection",
+    "depth": 2,
+    "intensity": 0.6,
+    "trigger_types": [
+      "burnout_risk"
+    ],
+    "priority": 0.6,
+    "question": "When did I feel disconnected?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "energy_drain",
+    "depth": 1,
+    "intensity": 0.3,
+    "trigger_types": [
+      "low_energy"
+    ],
+    "priority": 0.7,
+    "question": "What drained my energy today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "energy_gain",
+    "depth": 1,
+    "intensity": 0.3,
+    "trigger_types": [
+      "recovery_mode"
+    ],
+    "priority": 0.6,
+    "question": "What gave me energy today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "trigger_detection",
+    "depth": 2,
+    "intensity": 0.6,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.6,
+    "question": "What situation affected me more than expected?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "blind_spot",
+    "depth": 3,
+    "intensity": 0.8,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.8,
+    "question": "What was I avoiding noticing today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "emotional_suppression",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "suppression_pattern"
+    ],
+    "priority": 0.7,
+    "question": "What feeling did I ignore?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "task_avoidance",
+    "depth": 1,
+    "intensity": 0.4,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.8,
+    "question": "What task did I push off today?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "discomfort_escape",
+    "depth": 2,
+    "intensity": 0.6,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.7,
+    "question": "What discomfort was I trying to escape when I distracted myself?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "emotional_avoidance",
+    "depth": 3,
+    "intensity": 0.9,
+    "trigger_types": [
+      "avoidance_high",
+      "negative_thought"
+    ],
+    "priority": 0.9,
+    "question": "What fear was I escaping when I chose to scroll/distract?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "distraction",
+    "depth": 1,
+    "intensity": 0.3,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.6,
+    "question": "When was I most easily distracted?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "discomfort_escape",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.7,
+    "question": "What would have happened if I sat with the discomfort for 5 more minutes?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "recurring_thought",
+    "depth": 2,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.7,
+    "question": "What thought kept looping in my head today?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "belief",
+    "depth": 3,
+    "intensity": 0.8,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.8,
+    "question": "What am I believing about myself that might not be true?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "assumption",
+    "depth": 2,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.6,
+    "question": "What did I assume today without checking the facts?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "narrative",
+    "depth": 2,
+    "intensity": 0.6,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.7,
+    "question": "How did I talk to myself when things went wrong?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "stress_thought",
+    "depth": 1,
+    "intensity": 0.4,
+    "trigger_types": [
+      "burnout_risk"
+    ],
+    "priority": 0.6,
+    "question": "What is the single biggest source of mental noise right now?"
+  },
+  {
+    "category": "control",
+    "subcategory": "anxiety",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.7,
+    "question": "What did I stress about that I can't control?"
+  },
+  {
+    "category": "control",
+    "subcategory": "overthinking",
+    "depth": 2,
+    "intensity": 0.6,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.6,
+    "question": "Where did I overthink instead of acting?"
+  },
+  {
+    "category": "control",
+    "subcategory": "external_factors",
+    "depth": 1,
+    "intensity": 0.3,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "How much of my day was directed by other people's priorities?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "alignment",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.8,
+    "question": "Did I act like the person I want to become?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "integrity",
+    "depth": 3,
+    "intensity": 0.9,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.9,
+    "question": "Where did I break a promise to myself today?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "optimization",
+    "depth": 1,
+    "intensity": 0.2,
+    "trigger_types": [
+      "high_performance"
+    ],
+    "priority": 0.6,
+    "question": "What behavior made me effective today?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "values",
+    "depth": 2,
+    "intensity": 0.6,
+    "trigger_types": [],
+    "priority": 0.6,
+    "question": "Which of my core values did I demonstrate today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What subtle emotion did I notice today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel mentally scattered?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel calm without effort?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What moment changed my energy today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What did I notice about my mood patterns?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel tension in my body?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What was I most aware of today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What situation made me uncomfortable?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What emotion did I try to suppress?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What surprised me about my reactions?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought distracted me most today?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What belief limited my actions today?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What assumption turned out to be wrong?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought created doubt?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought did I question today?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought kept repeating?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What internal dialogue did I notice?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought triggered emotion?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought slowed me down?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought helped me act?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I jump to conclusions today?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I assume things would go wrong?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I focus only on negatives?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I ignore evidence that contradicted me?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I blame myself unfairly?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I think others had negative intent?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I treat feelings as facts?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I expect perfection?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I exaggerate mistakes?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I minimize successes?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What task did I delay the most?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What behavior felt automatic?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Where did I act without thinking?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What action took effort?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What behavior helped me progress?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What behavior held me back?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I finish completely?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Where did I lose momentum?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I start but not finish?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Where did I act out of habit?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What task did I postpone?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What fear caused me to avoid action?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What discomfort did I run from?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What excuse did I use?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What feeling was I unwilling to face?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What did I replace effort with?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What was the cost of avoiding?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What did I delay unnecessarily?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What challenge did I sidestep?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "Where did I escape into comfort?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What emotion lasted the longest?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I overreact to anything?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What helped me regain control?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I let emotions guide decisions?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What stabilized my mood?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I stay calm under pressure?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What triggered frustration?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I notice emotional patterns?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I respond thoughtfully?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I let something go?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What could I control today?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What did I try to control unnecessarily?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I take ownership?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I avoid responsibility?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What decision did I make?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What did I delay deciding?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I feel stuck?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What action was in my control?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I give away control?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act intentionally?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What identity did I express today?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act with self-respect?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I go against my values?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What version of myself showed up?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act authentically?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What belief about myself influenced me?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I betray my standards?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What identity am I reinforcing?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act with integrity?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What kind of person was I today?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What distracted me most?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Where did I lose focus?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What helped me stay focused?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Did I manage my time well?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What interrupted my work?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Did I control my attention?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What task required discipline?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Where did I lose discipline?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What improved my focus?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Did I avoid hard tasks?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I improve today?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What lesson did I learn?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What went well today?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What could I do better?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What am I proud of?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What pattern is forming?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Am I moving forward?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What small win did I have?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What needs adjustment?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What will I change tomorrow?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What feeling surfaced unexpectedly today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel mentally clear?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel mentally foggy?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What moment affected my mood the most?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What pattern did I notice in my emotions?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "When did I feel uncomfortable in my own thoughts?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What grabbed my attention the most today?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What environment affected my mood?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What did I avoid becoming aware of?"
+  },
+  {
+    "category": "awareness",
+    "subcategory": "awareness_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "mood_variability"
+    ],
+    "priority": 0.5,
+    "question": "What internal shift did I notice?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought kept distracting me?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What belief shaped my decisions?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What assumption created stress?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought lowered my confidence?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought did I challenge?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought came back repeatedly?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What self-talk did I notice?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought triggered anxiety?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought slowed my progress?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "thoughts_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought"
+    ],
+    "priority": 0.5,
+    "question": "What thought encouraged action?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I assume negative outcomes without evidence?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I overlook positive aspects?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I interpret things too personally?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I exaggerate risks?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I dismiss my achievements?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I think in black-and-white terms?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I assume others judged me?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I treat one mistake as a pattern?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I expect the worst-case scenario?"
+  },
+  {
+    "category": "thoughts",
+    "subcategory": "cognitive_distortions_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "negative_thought",
+      "distortion"
+    ],
+    "priority": 0.5,
+    "question": "Did I minimize progress?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I delay starting?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What behavior felt automatic today?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Where did I act without awareness?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What required effort today?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What action moved me forward?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What behavior slowed me down?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I complete fully?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Where did I lose consistency?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I leave incomplete?"
+  },
+  {
+    "category": "behavior",
+    "subcategory": "behavior_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Where did I act out of habit instead of intention?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What responsibility did I delay?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What fear stopped me from acting?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What discomfort did I avoid?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What excuse did I rely on?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What emotion did I avoid feeling?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What did I replace effort with?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What consequence came from avoiding?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What challenge did I delay?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "What opportunity did I avoid?"
+  },
+  {
+    "category": "avoidance",
+    "subcategory": "avoidance_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "avoidance_high"
+    ],
+    "priority": 0.5,
+    "question": "Where did I choose comfort instead of growth?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What emotion stayed with me the longest?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I react impulsively?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What helped me calm down?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I let emotions guide decisions?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What stabilized my emotions?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I manage pressure well?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "What caused frustration?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I notice emotional triggers?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I respond thoughtfully?"
+  },
+  {
+    "category": "emotional_regulation",
+    "subcategory": "emotional_regulation_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "emotional_spike"
+    ],
+    "priority": 0.5,
+    "question": "Did I release tension?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What did I control effectively?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What did I try to control unnecessarily?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I take responsibility?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I avoid ownership?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What decision did I make confidently?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What decision did I delay?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I feel powerless?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What action was within my control?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I give away control?"
+  },
+  {
+    "category": "control_responsibility",
+    "subcategory": "control_responsibility_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act with intention?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What identity did I act from today?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act with self-respect?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Where did I compromise my values?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What version of me showed up today?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I stay authentic?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What belief about myself influenced behavior?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 3,
+    "intensity": 0.9000000000000001,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I go against my standards?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What identity am I reinforcing daily?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "Did I act with integrity today?"
+  },
+  {
+    "category": "identity",
+    "subcategory": "identity_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_integrity"
+    ],
+    "priority": 0.5,
+    "question": "What kind of person did I behave like?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What distracted me repeatedly?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Where did I lose focus easily?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What helped me concentrate?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Did I manage time well?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What interrupted my workflow?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Did I control distractions?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What required discipline?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Where did I lose discipline?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "What improved my productivity?"
+  },
+  {
+    "category": "discipline_focus",
+    "subcategory": "discipline_focus_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [
+      "low_focus"
+    ],
+    "priority": 0.5,
+    "question": "Did I avoid challenging work?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What did I improve today?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What insight did I gain?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What worked well today?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What could I improve tomorrow?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What am I proud of today?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What pattern is becoming clear?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "Am I progressing toward my goals?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 1,
+    "intensity": 0.5,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What small win did I achieve?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What needs adjustment moving forward?"
+  },
+  {
+    "category": "progress_reflection",
+    "subcategory": "progress_reflection_general",
+    "depth": 2,
+    "intensity": 0.7,
+    "trigger_types": [],
+    "priority": 0.5,
+    "question": "What will I change tomorrow?"
+  }
+]
