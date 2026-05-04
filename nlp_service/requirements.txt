@@ -6,3 +6,10 @@ numpy
 pandas
 httpx
 pytest
+# Observability
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
+prometheus-fastapi-instrumentator
+redis
+kafka-python

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import uuid
@@ -41,7 +41,7 @@ def reset_burnout(user=Depends(auth_required), db: Session = Depends(get_db)):
         user_id=user.id,
         event_type="neural_reset",
         event_data={"impact": -0.2, "source": "manual_trigger"},
-        context={"timestamp": datetime.utcnow().isoformat()}
+        context={"timestamp": datetime.now(timezone.utc).isoformat()}
     )
     db.add(reset_log)
     db.commit()
@@ -100,11 +100,23 @@ def delete_habit(habit_id: str, user=Depends(auth_required), db: Session = Depen
 @router.get("/today/status")
 def get_today_status(user=Depends(auth_required), db: Session = Depends(get_db)):
     today = date.today()
-    logs = db.query(HabitLog.habit_id).join(Habit, Habit.id == HabitLog.habit_id).filter(
-        Habit.user_id == user.id,
+    habits = db.query(Habit).filter(Habit.user_id == user.id).all()
+    logs = db.query(HabitLog.habit_id).filter(
+        HabitLog.user_id == user.id,
         HabitLog.date == today
     ).all()
-    return [log[0] for log in logs]
+    completed_ids = [log[0] for log in logs]
+    
+    result = []
+    for h in habits:
+        result.append({
+            "id": h.id,
+            "name": h.name,
+            "time": h.time,
+            "difficulty": h.difficulty,
+            "completed": h.id in completed_ids
+        })
+    return {"habits": result}
 
 @router.post("/complete")
 async def complete_habit(
@@ -124,23 +136,18 @@ async def complete_habit(
         if not result["success"]:
             raise HTTPException(status_code=400, detail=result["error"])
 
-        # Fire behavioral insight generation in background (non-blocking)
-        def _run_insights(user_id: str):
-            from app.db.session import SessionLocal
-            bg_db = SessionLocal()
-            try:
-                habit_count = bg_db.query(Habit).filter(
-                    Habit.user_id == user_id,
-                    Habit.is_active == True,
-                ).count()
-                svc = BehavioralInsightService(bg_db)
-                svc.run_for_user(user_id=user_id, habit_count=habit_count)
-            except Exception as e:
-                print(f"[InsightEngine] Background run error: {e}")
-            finally:
-                bg_db.close()
-
-        background_tasks.add_task(_run_insights, str(user.id))
+        # Fire behavioral event to Kafka for asynchronous processing (Pattern Detection / NLP)
+        from app.services.core.kafka_service import KafkaService
+        KafkaService.send_behavioral_event(
+            user_id=str(user.id),
+            event_type="habit_completion",
+            value=1.0,
+            metadata={
+                "habit_id": str(request.habit_id),
+                "difficulty": request.difficulty,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
 
         return result
 
@@ -180,14 +187,14 @@ def adjust_difficulty(habit_id: str, user=Depends(auth_required), db: Session = 
     
     # Cooldown check: 3 days
     if habit.last_adjusted_at:
-        if (datetime.utcnow() - habit.last_adjusted_at).days < 3:
+        if (datetime.now(timezone.utc) - habit.last_adjusted_at).days < 3:
             return {"status": "cooldown", "message": "Adjustment on cooldown"}
 
     logs = db.query(HabitLog).filter(HabitLog.habit_id == habit_id).all()
     change = reward_service.adjust_habit_difficulty(habit, logs)
     
     if change:
-        habit.last_adjusted_at = datetime.utcnow()
+        habit.last_adjusted_at = datetime.now(timezone.utc)
         db.commit()
     
     return {"status": "success", "change": change, "difficulty": habit.difficulty}
@@ -274,7 +281,7 @@ async def get_habit_state(user=Depends(auth_required), db: Session = Depends(get
             "daily_habit_goal": getattr(user, 'daily_habit_goal', 3),
         },
         "habits_completed_today": [log[0] for log in completed_ids],
-        "server_time": datetime.utcnow().isoformat()
+        "server_time": datetime.now(timezone.utc).isoformat()
     }
 
 @router.get("/")
@@ -294,9 +301,9 @@ def get_activity_feed(limit: int = 10, user=Depends(auth_required), db: Session 
     
     feed = []
     for log, habit in logs:
-        completed_at = log.completed_at or datetime.utcnow()
+        completed_at = log.completed_at or datetime.now(timezone.utc)
         # Compute how long ago
-        delta = datetime.utcnow() - completed_at
+        delta = datetime.now(timezone.utc) - completed_at
         if delta.seconds < 3600:
             time_ago = f"{delta.seconds // 60}m ago"
         elif delta.days == 0:

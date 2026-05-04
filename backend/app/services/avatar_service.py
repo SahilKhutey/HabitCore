@@ -1,5 +1,5 @@
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.models.avatar_models import UserAvatar, AvatarItem, Archetype, EvolutionStage
 # Assuming psychological_service is available
@@ -33,7 +33,7 @@ class AvatarService:
         if avatar.mood_sync:
             self._sync_with_mood(avatar, habit_data.get('mood'))
         
-        avatar.updated_at = datetime.utcnow()
+        avatar.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         
         return avatar
@@ -79,7 +79,7 @@ class AvatarService:
         
         if avatar.total_xp >= next_threshold:
             avatar.evolution_stage = current_stage + 1
-            avatar.last_evolution = datetime.utcnow()
+            avatar.last_evolution = datetime.now(timezone.utc)
             avatar.evolution_progress = 0.0
         else:
             if next_threshold != float('inf'):

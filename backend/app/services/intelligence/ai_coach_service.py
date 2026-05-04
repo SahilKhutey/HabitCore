@@ -23,7 +23,7 @@ v2 Language Rules (enforced in system prompt):
 """
 import json
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.core.state_engine import UserState, UserMode
 
@@ -120,7 +120,7 @@ class AICoachService:
 
         if cache_key in self._cache:
             entry = self._cache[cache_key]
-            if datetime.now() - entry["ts"] < timedelta(hours=4):
+            if datetime.now(timezone.utc) - entry["ts"] < timedelta(hours=4):
                 return {**entry["response"], "cached": True}
 
         context = self._build_behavioral_context(
@@ -142,7 +142,7 @@ class AICoachService:
             "mode":     user_state.mode.value,
         }
 
-        self._cache[cache_key] = {"response": result, "ts": datetime.now()}
+        self._cache[cache_key] = {"response": result, "ts": datetime.now(timezone.utc)}
         return result
 
     # ── Context Builder ───────────────────────────────────────────────────────

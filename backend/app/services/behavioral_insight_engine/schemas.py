@@ -4,7 +4,7 @@ Schemas — Pydantic contracts for the Behavioral Insight Engine.
 DailyBehaviorData: input contract normalizing checkin + habit data per day.
 InsightOut: output contract for API responses.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import date
 
@@ -37,8 +37,7 @@ class InsightOut(BaseModel):
     is_read: bool
     created_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GrowthReportOut(BaseModel):

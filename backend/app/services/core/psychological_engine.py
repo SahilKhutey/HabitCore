@@ -11,7 +11,7 @@ v2 language rule: ALL messages are calm, specific, non-judgmental.
 No "You failed!" — only "Your system needs rest."
 """
 from typing import Dict, Any, List, Optional
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.models.psychological import DailyCheckin
@@ -97,7 +97,7 @@ class PsychologicalEngine:
 
         # Habit failure rate
         total_expected = len(habits) * days
-        completed_logs = self.db.query(HabitLog).join(Habit).filter(
+        completed_logs = self.db.query(HabitLog).join(Habit, HabitLog.habit_id == Habit.id).filter(
             Habit.user_id == user_id,
             HabitLog.date >= cutoff,
             HabitLog.completed == True,
@@ -177,7 +177,7 @@ class PsychologicalEngine:
             trigger_type=trigger,
             plan_type="load_reduction",
             actions=actions,
-            expires_at=datetime.utcnow() + timedelta(days=actions["duration_days"]),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=actions["duration_days"]),
         )
         self.db.add(plan)
         self.db.commit()
@@ -198,7 +198,7 @@ class PsychologicalEngine:
             Habit.is_active == True,
         ).all()
 
-        logs = self.db.query(HabitLog).join(Habit).filter(
+        logs = self.db.query(HabitLog).join(Habit, HabitLog.habit_id == Habit.id).filter(
             Habit.user_id == user_id,
             HabitLog.date >= cutoff,
             HabitLog.completed == True,

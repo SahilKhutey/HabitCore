@@ -19,7 +19,7 @@ Architecture rules enforced here:
   4. All messages follow v2 language standard
 """
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.services.core.habit_engine import HabitEngine
@@ -33,6 +33,7 @@ from app.services.live_ops.config_engine import config_engine
 from app.models.user import User
 from app.core.security import security_engine
 from app.utils.logging import structured_logger
+from app.services.analytics_service import AnalyticsService
 
 
 class HabitOrchestratorV2:
@@ -75,8 +76,20 @@ class HabitOrchestratorV2:
                 "habit_completed",
                 {**habit_data, "streak": completion_ctx["streak"]},
                 context={
-                    "hour":        datetime.utcnow().hour,
-                    "day_of_week": datetime.utcnow().strftime("%A"),
+                    "hour":        datetime.now(timezone.utc).hour,
+                    "day_of_week": datetime.now(timezone.utc).strftime("%A"),
+                }
+            )
+
+            # ── 3.5 Analytics Event (WebSocket trigger) ───────────────────
+            AnalyticsService.log_event(
+                self.db, 
+                user_id, 
+                "habit_completed", 
+                {
+                    "habit_id": habit_id,
+                    "habit_name": habit_data.get("name"),
+                    "streak": completion_ctx["streak"]
                 }
             )
 
@@ -187,7 +200,7 @@ class HabitOrchestratorV2:
                 "ai_guidance":    ai_guidance,
                 "recovery_plan":  recovery_plan,
 
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         except ValueError as e:

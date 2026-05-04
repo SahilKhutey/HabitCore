@@ -1,7 +1,7 @@
 """
 Pydantic schemas for the Cognitive Training System.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 
 
@@ -25,8 +25,7 @@ class CognitiveSkillOut(BaseModel):
     cognitive_level:         int
     overall_score:           float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ── Mental Scores (per day) ───────────────────────────────────────────────────

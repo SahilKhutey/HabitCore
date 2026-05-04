@@ -107,9 +107,75 @@ services:
     environment:
       - REDIS_HOST=redis
 
+  # NLP API (Sync for manual triggers/checks)
+  nlp-service:
+    build:
+      context: ./nlp_service
+    container_name: nlp-service
+    ports:
+      - "8003:8000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - kafka
+      - redis
+
+  # NLP Background Worker (Priority-aware)
+  nlp-worker:
+    build:
+      context: ./nlp_service
+    container_name: nlp-worker
+    command: ["python", "-m", "app.worker"]
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - kafka
+      - redis
+
+  # Priority Scheduler (Kafka -> Redis Router)
+  priority-scheduler:
+    build:
+      context: ./priority_scheduler
+    container_name: priority-scheduler
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/habitcore
+    depends_on:
+      - kafka
+      - redis
+      - postgres
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: habitcore
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  behavioral-simulator:
+    build:
+      context: ./behavioral_simulator
+    container_name: behavioral-simulator
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SCENARIO=NORMAL
+      - USER_COUNT=100
+      - DURATION_SEC=0
+    depends_on:
+      - kafka
+
 networks:
   default:
     name: habitcore-realtime-net
 
 volumes:
   redis-data:
+  postgres-data:

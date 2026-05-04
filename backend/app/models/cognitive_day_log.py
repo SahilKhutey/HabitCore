@@ -10,7 +10,7 @@ All JSON fields stored as SQLAlchemy JSON (serialized dicts/lists).
 """
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, JSON, Date, ForeignKey
 from app.db.declarative import Base
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 import uuid
 
 
@@ -88,5 +88,5 @@ class CognitiveDayLog(Base):
     # Entry metadata
     morning_completed     = Column(Boolean, default=False)
     evening_completed     = Column(Boolean, default=False)
-    created_at            = Column(DateTime, default=datetime.utcnow)
-    updated_at            = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at            = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at            = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

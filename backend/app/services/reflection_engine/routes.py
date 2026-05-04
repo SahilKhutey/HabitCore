@@ -61,6 +61,7 @@ from app.services.reflection_engine.answer_intelligence import AnswerIntelligenc
 from app.models.intelligence_models import DailyLog, QuestionUsageLog, QuestionStats, Question, CognitiveSignal, Event
 
 from streaming.producer import send_user_text_event
+from app.services.ai_service import get_ai_service
 
 @router.post("/respond", summary="Log V2 response and stream intelligence")
 def log_reflection_response_v2(
@@ -104,4 +105,31 @@ def log_reflection_response_v2(
     stats.updated_at = datetime.now(timezone.utc)
     
     db.commit()
-    return {"status": "synced", "effectiveness": stats.effectiveness_score}
+    
+    # 4. Phase 1 Hook: Generate Instant Insight for Day 0
+    instant_insight = None
+    if user.onboarding_state and not user.onboarding_state.get("instant_insight"):
+        # Check if this is truly the first successful reflection
+        successful_count = db.query(QuestionUsageLog).filter(
+            QuestionUsageLog.user_id == str(user.id),
+            QuestionUsageLog.skipped == False
+        ).count()
+        
+        if successful_count == 1: # This current one is the first
+            ai = get_ai_service()
+            instant_insight = ai.generate_instant_insight(
+                str(user.id), 
+                user.onboarding_state, 
+                resp.response
+            )
+            # Persist insight to avoid re-generating
+            user.onboarding_state["instant_insight"] = instant_insight
+            # Mark that we've delivered the Day 0 hook
+            user.onboarding_state["hook_delivered_at"] = datetime.now(timezone.utc).isoformat()
+            db.commit()
+
+    return {
+        "status": "synced", 
+        "effectiveness": stats.effectiveness_score,
+        "instant_insight": instant_insight
+    }

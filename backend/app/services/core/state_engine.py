@@ -21,7 +21,7 @@ CRITICAL: Experience Layer CANNOT override state-driven limits.
 from typing import Dict, Any, Optional, List
 from enum import Enum
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class UserMode(str, Enum):
@@ -53,7 +53,7 @@ class UserState:
     allow_new_habits: bool
 
     # Metadata
-    computed_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    computed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         return {

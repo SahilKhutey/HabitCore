@@ -1,7 +1,7 @@
 """
 Normalization Layer — Standardizes raw event data.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 def normalize_event(event: Dict[str, Any]) -> Dict[str, Any]:
@@ -16,9 +16,9 @@ def normalize_event(event: Dict[str, Any]) -> Dict[str, Any]:
         try:
             timestamp = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
         except:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
     else:
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(timezone.utc)
 
     return {
         "user_id": str(event["user_id"]),

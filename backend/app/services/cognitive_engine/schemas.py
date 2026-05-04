@@ -10,7 +10,7 @@ One output:
   CognitiveInsightOut    — single insight from InsightBuilder
   DailyCognitiveSummary  — lightweight summary for AI context injection
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import date
 
@@ -120,8 +120,7 @@ class CognitiveDayLogOut(BaseModel):
     identity_alignment_score: Optional[float]
     cognitive_load_score:     Optional[float]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DailyCognitiveSummary(BaseModel):

@@ -36,7 +36,7 @@ class SoundEngine {
       });
       this.sounds[name] = sound;
     } catch (error) {
-      console.warn(`Failed to load sound ${name}: ${error.message}`);
+      console.warn(`Failed to load sound ${name}: ${(error as any).message}`);
     }
   }
 

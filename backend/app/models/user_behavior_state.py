@@ -4,7 +4,7 @@ This determines how the app interface behaves for a specific user.
 """
 from sqlalchemy import Column, String, Float, DateTime, JSON
 from app.db.declarative import Base
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 class UserBehaviorState(Base):
@@ -22,5 +22,5 @@ class UserBehaviorState(Base):
     # Store weekly meta for the dashboard
     weekly_meta = Column(JSON, nullable=True)
     
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

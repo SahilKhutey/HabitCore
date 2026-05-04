@@ -1,0 +1,47 @@
+groups:
+  - name: kafka-lag-alerts
+    rules:
+      - alert: HighKafkaLag
+        expr: sum(kafka_consumergroup_lag) > 2000
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Kafka Lag Detected"
+          description: "Consumer lag exceeded 2000 messages"
+
+      - alert: CriticalKafkaLag
+        expr: sum(kafka_consumergroup_lag) > 5000
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL Kafka Lag"
+          description: "System is falling behind rapidly"
+
+      - alert: ConsumerStalled
+        expr: rate(kafka_consumergroup_current_offset[1m]) == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Consumer Stalled"
+          description: "No message consumption detected for 1 minute"
+
+      - alert: LagGrowingFast
+        expr: deriv(sum(kafka_consumergroup_lag)[1m]) > 500
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Lag Growing Rapidly"
+          description: "Kafka lag is increasing at a rate of > 500 msg/sec"
+
+      - alert: RecoverySignal
+        expr: sum(kafka_consumergroup_lag) < 200
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "System Recovered"
+          description: "Kafka lag has returned to safe levels"

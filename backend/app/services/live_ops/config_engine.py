@@ -19,7 +19,7 @@ Architecture:
 """
 import json
 from typing import Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 # ── Default Configuration (production-safe) ──────────────────────────────────
@@ -64,7 +64,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
 
     # System
     "maintenance_mode":        False,
-    "updated_at":              datetime.utcnow().isoformat(),
+    "updated_at":              datetime.now(timezone.utc).isoformat(),
 }
 
 
@@ -115,7 +115,7 @@ class ConfigEngine:
                     self._cache["features"].update(value)
                 else:
                     self._cache[key] = value
-        self._cache["updated_at"] = datetime.utcnow().isoformat()
+        self._cache["updated_at"] = datetime.now(timezone.utc).isoformat()
 
     def reload_from_db(self, db) -> None:
         """
@@ -123,7 +123,7 @@ class ConfigEngine:
         Called on startup and every CACHE_TTL_MINUTES.
         If DB has no config, defaults are used.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if (
             self._loaded_at
             and (now - self._loaded_at) < timedelta(minutes=self.CACHE_TTL_MINUTES)

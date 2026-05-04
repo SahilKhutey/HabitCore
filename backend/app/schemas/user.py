@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class UserCreate(BaseModel):
@@ -13,5 +13,4 @@ class UserSchema(BaseModel):
     is_premium: bool = False
     identity_goal: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

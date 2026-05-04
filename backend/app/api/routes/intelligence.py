@@ -44,8 +44,20 @@ def ingest_log(
     pipeline = IntelligencePipeline(db)
     log = pipeline.ingest_daily_log(str(user.id), log_data.dict())
     
-    # Trigger full pipeline processing asynchronously or inline for small scale
-    pipeline.run_full_pipeline(str(user.id), log.date)
+    # Trigger full pipeline processing asynchronously via Kafka
+    from app.services.core.kafka_service import KafkaService
+    KafkaService.send_behavioral_event(
+        user_id=str(user.id),
+        event_type="daily_log_ingested",
+        value=log_data.self_integrity_score,
+        metadata={
+            "log_id": str(log.id),
+            "date": log.date.isoformat(),
+            "mood": log_data.mood,
+            "energy": log_data.energy,
+            "text": f"{log_data.key_thought or ''} {' '.join(log_data.wins)} {' '.join(log_data.failures)}"
+        }
+    )
     
     return {"status": "success", "log_id": log.id, "date": log.date}
 

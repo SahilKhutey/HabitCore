@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional, Set
 from pydantic import BaseModel
 
@@ -47,7 +47,7 @@ class UserGuardian:
         if not last_open:
             score += 50
         else:
-            days_inactive = (datetime.utcnow() - last_open.created_at).days
+            days_inactive = (datetime.now(timezone.utc) - last_open.created_at).days
             if days_inactive >= 3:
                 score += 40
             elif days_inactive >= 1:

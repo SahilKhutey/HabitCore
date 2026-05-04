@@ -1,368 +1,291 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, SafeAreaView } from 'react-native';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import AvatarCharacter from '../../src/components/AvatarCharacter';
-import { GlassCard } from '../../src/components/GlassCard';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../src/theme/theme';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  SafeAreaView, 
+  TouchableOpacity, 
+  ScrollView,
+  TextInput,
+  RefreshControl,
+  Alert,
+  ActivityIndicator
+} from 'react-native';
+import { COLORS, SPACING, TYPOGRAPHY, RADIUS, SHADOWS } from '../../src/theme/theme';
 import { api } from '../../src/api/client';
 import { useUserStore } from '../../src/store/useUserStore';
+import { GlassCard } from '../../src/components/GlassCard';
+import { 
+  Plus, Trash2, Clock, X, Brain, Sparkles, 
+  Zap, Shield, Star
+} from 'lucide-react-native';
+import { MotiView, AnimatePresence } from 'moti';
+import { triggerHaptic } from '../../src/utils/animationManager';
 
-export default function AvatarStudioScreen() {
-  const [activeTab, setActiveTab] = useState('studio'); // 'studio' or 'forge'
-  const [selectedCategory, setSelectedCategory] = useState('outfit');
-  const queryClient = useQueryClient();
-  const { token } = useUserStore();
+export default function StudioScreen() {
+  const { token, level, xp, coins, setUserInfo } = useUserStore();
+  const [avatar, setAvatar] = useState<any>(null);
+  const [shopItems, setShopItems] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'avatar' | 'anchors'>('avatar');
+  
+  // Habits state (previously in this file)
+  const [habits, setHabits] = useState<any[]>([]);
+  const [showAddHabit, setShowAddHabit] = useState(false);
+  const [newName, setNewName] = useState('');
 
-  const handleTabSwitch = (tab: string) => {
-    setActiveTab(tab);
-    setSelectedCategory(tab === 'studio' ? 'outfit' : 'theme');
+  const fetchData = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const [avatarRes, shopRes, habitRes] = await Promise.all([
+        api('/api/avatar/', 'GET', null, token),
+        api('/api/avatar/shop', 'GET', null, token),
+        api('/habits/today/status', 'GET', null, token)
+      ]);
+      
+      if (avatarRes?.success) {
+        setAvatar(avatarRes.avatar);
+        // Sync global store
+        setUserInfo({
+          level: avatarRes.avatar.level,
+          xp: avatarRes.avatar.xp,
+          coins: avatarRes.avatar.economy.coins
+        });
+      }
+      if (shopRes?.success) setShopItems(shopRes.items);
+      if (habitRes?.habits) setHabits(habitRes.habits);
+      
+    } catch (e) {
+      console.error('Studio fetch error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [token, setUserInfo]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
   };
 
-  const { data: avatarResponse, isLoading: isLoadingAvatar } = useQuery({
-    queryKey: ['avatar'],
-    queryFn: () => api('/api/avatar/', 'GET', null, token!),
-    enabled: !!token,
-  });
-
-  const { data: shopResponse, isLoading: isLoadingShop } = useQuery({
-    queryKey: ['avatar-shop'],
-    queryFn: () => api('/api/avatar/shop', 'GET', null, token!),
-    enabled: !!token,
-  });
-
-  const { data: forgeResponse, isLoading: isLoadingForge } = useQuery({
-    queryKey: ['forge-shop'],
-    queryFn: () => api('/shop/items', 'GET', null, token!),
-    enabled: !!token,
-  });
-
-  const purchaseMutation = useMutation({
-    mutationFn: (itemId: string) => api('/api/avatar/purchase', 'POST', { item_id: itemId }, token!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['avatar'] });
+  const handlePurchase = async (itemId: string) => {
+    try {
+      triggerHaptic('impactMedium');
+      const res = await api('/api/avatar/purchase', 'POST', { item_id: itemId }, token!);
+      if (res.success) {
+        triggerHaptic('success');
+        Alert.alert('Success', res.message);
+        fetchData();
+      } else {
+        triggerHaptic('error');
+        Alert.alert('Purchase Failed', res.message);
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
     }
-  });
+  };
 
-  const avatar = avatarResponse?.avatar;
-  const studioItems = shopResponse?.items || [];
-  const forgeItems = forgeResponse || [];
+  const renderAvatarSection = () => (
+    <View style={styles.avatarSection}>
+      <GlassCard style={styles.characterStage}>
+        <View style={styles.archetypeContainer}>
+           <MotiView
+             from={{ scale: 0.5, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             transition={{ type: 'spring' }}
+             style={styles.avatarCircle}
+           >
+             <Text style={styles.avatarEmoji}>
+               {avatar?.archetype === 'pioneer' ? '⚡' : (avatar?.archetype === 'sage' ? '🧘' : '🚀')}
+             </Text>
+             {avatar?.appearance?.aura && (
+               <MotiView 
+                 from={{ opacity: 0, scale: 0.8 }}
+                 animate={{ opacity: 1, scale: 1.2 }}
+                 transition={{ loop: true, type: 'timing', duration: 2000 }}
+                 style={[styles.aura, { borderColor: avatar.appearance.aura.includes('Fire') ? COLORS.danger : COLORS.primary }]}
+               />
+             )}
+           </MotiView>
+        </View>
+        
+        <View style={styles.characterInfo}>
+          <Text style={styles.characterName}>{avatar?.archetype?.toUpperCase() || 'PIONEER'}</Text>
+          <Text style={styles.characterStageText}>Evolution Stage {avatar?.evolution_stage || 1}</Text>
+        </View>
+      </GlassCard>
 
-  const categories = activeTab === 'studio' 
-    ? [
-        { id: 'outfit', label: 'Outfits' },
-        { id: 'aura', label: 'Auras' },
-        { id: 'accessory', label: 'Accessories' }
-      ]
-    : [
-        { id: 'theme', label: 'Themes' },
-        { id: 'powerup', label: 'Powerups' },
-        { id: 'booster', label: 'Boosters' }
-      ];
-
-  const filteredItems = activeTab === 'studio'
-    ? studioItems.filter((item: any) => item.type === selectedCategory)
-    : forgeItems.filter((item: any) => item.category === selectedCategory);
-
-  if (isLoadingAvatar || isLoadingShop || isLoadingForge) {
-    return (
-      <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <Text style={styles.sectionTitle}>EQUIPPED ITEMS</Text>
+      <View style={styles.equippedGrid}>
+        {['skin', 'outfit', 'aura', 'accessory'].map((type) => (
+          <View key={type} style={styles.equippedSlot}>
+            <View style={styles.slotBox}>
+              <Text style={styles.slotText}>{avatar?.appearance[type] ? '✓' : '+'}</Text>
+            </View>
+            <Text style={styles.slotLabel}>{type.toUpperCase()}</Text>
+          </View>
+        ))}
       </View>
-    );
-  }
+
+      <Text style={styles.sectionTitle}>THE FORGE</Text>
+      <View style={styles.shopGrid}>
+        {shopItems.map((item, i) => (
+          <MotiView 
+            key={item.id}
+            from={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 100 }}
+          >
+            <TouchableOpacity 
+              style={styles.shopCard}
+              onPress={() => handlePurchase(item.id)}
+              disabled={coins < item.price}
+            >
+              <GlassCard style={[styles.itemIconBox, coins < item.price && { opacity: 0.5 }]}>
+                <Sparkles size={20} color={COLORS.primary} />
+              </GlassCard>
+              <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+              <View style={styles.priceTag}>
+                <Text style={styles.priceText}>{item.price} 🪙</Text>
+              </View>
+            </TouchableOpacity>
+          </MotiView>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderAnchorsSection = () => (
+    <View style={styles.anchorsSection}>
+       <View style={styles.habitHeader}>
+          <Text style={styles.sectionTitle}>BEHAVIORAL ANCHORS</Text>
+          <TouchableOpacity onPress={() => setShowAddHabit(!showAddHabit)}>
+            <Plus size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+       </View>
+       
+       {habits.map((h, i) => (
+         <GlassCard key={h.id} style={styles.habitItem}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.habitName}>{h.name}</Text>
+              <Text style={styles.habitMeta}>{h.time || 'Anytime'} • {h.difficulty}</Text>
+            </View>
+            <TouchableOpacity onPress={() => {}}>
+              <Trash2 size={16} color={COLORS.danger} />
+            </TouchableOpacity>
+         </GlassCard>
+       ))}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.topToggle}>
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+      >
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Evolve</Text>
+            <Text style={styles.subtitle}>Align your avatar with your actions.</Text>
+          </View>
+          <GlassCard style={styles.balanceBox}>
+            <Text style={styles.balanceText}>{coins} 🪙</Text>
+          </GlassCard>
+        </View>
+
+        <View style={styles.tabContainer}>
           <TouchableOpacity 
-            onPress={() => handleTabSwitch('studio')}
-            style={[styles.toggleBtn, activeTab === 'studio' && styles.toggleBtnActive]}
+            style={[styles.tab, activeTab === 'avatar' && styles.activeTab]}
+            onPress={() => { triggerHaptic('impactLight'); setActiveTab('avatar'); }}
           >
-            <Text style={[styles.toggleText, activeTab === 'studio' && styles.toggleTextActive]}>STUDIO</Text>
+            <Text style={[styles.tabText, activeTab === 'avatar' && styles.activeTabText]}>Avatar</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            onPress={() => handleTabSwitch('forge')}
-            style={[styles.toggleBtn, activeTab === 'forge' && styles.toggleBtnActive]}
+            style={[styles.tab, activeTab === 'anchors' && styles.activeTab]}
+            onPress={() => { triggerHaptic('impactLight'); setActiveTab('anchors'); }}
           >
-            <Text style={[styles.toggleText, activeTab === 'forge' && styles.toggleTextActive]}>FORGE</Text>
+            <Text style={[styles.tabText, activeTab === 'anchors' && styles.activeTabText]}>Anchors</Text>
           </TouchableOpacity>
         </View>
 
-        {activeTab === 'studio' ? (
-          <View style={styles.previewSection}>
-            <Text style={styles.archetypeTitle}>{avatar?.archetype?.toUpperCase() || 'BEGINNER'}</Text>
-            <AvatarCharacter 
-              avatar={avatar} 
-              size={180}
-              animate={true}
-            />
-          </View>
-        ) : (
-          <View style={styles.forgeHeader}>
-             <Text style={styles.archetypeTitle}>ENHANCEMENTS</Text>
-             <Text style={styles.forgeSubtitle}>Power-ups and system themes.</Text>
-          </View>
-        )}
+        {activeTab === 'avatar' ? renderAvatarSection() : renderAnchorsSection()}
 
-        <GlassCard style={styles.statsCard}>
-          <View style={styles.currencyContainer}>
-            <Text style={styles.currencyText}>🪙 {avatar?.economy?.coins || 0}</Text>
-          </View>
-        </GlassCard>
-
-        <View style={styles.tabsWrapper}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
-            {categories.map(category => (
-              <TouchableOpacity
-                key={category.id}
-                onPress={() => setSelectedCategory(category.id)}
-                style={[
-                  styles.tab,
-                  selectedCategory === category.id && styles.tabActive
-                ]}
-              >
-                <Text style={[
-                  styles.tabText,
-                  selectedCategory === category.id && styles.tabTextActive
-                ]}>
-                  {category.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        <FlatList
-          data={filteredItems}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.itemsGrid}
-          renderItem={({ item }) => {
-            const isUnlocked = activeTab === 'studio' 
-              ? avatar?.economy?.unlocked_items?.includes(item.id)
-              : false; // Forge items are usually one-time use or permanent unlocks
-            
-            const isEquipped = activeTab === 'studio'
-              ? avatar?.economy?.equipped_items?.[item.type] === item.id
-              : false;
-
-            const canAfford = (avatar?.economy?.coins || 0) >= item.price;
-
-            return (
-              <GlassCard style={[styles.itemCard, isEquipped && styles.equippedCard]}>
-                <View style={styles.itemContent}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemRarity}>{item.rarity?.toUpperCase() || item.category?.toUpperCase()}</Text>
-                  
-                  {!isEquipped && (
-                    <TouchableOpacity
-                      style={[
-                        styles.actionButton,
-                        !isUnlocked && !canAfford && styles.buttonDisabled
-                      ]}
-                      onPress={() => purchaseMutation.mutate(item.id)}
-                      disabled={purchaseMutation.isPending || (!isUnlocked && !canAfford)}
-                    >
-                      <Text style={styles.buttonText}>
-                        {isUnlocked ? 'EQUIP' : `🪙 ${item.price || item.cost}`}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  {isEquipped && (
-                    <View style={styles.equippedBadge}>
-                      <Text style={styles.equippedText}>EQUIPPED</Text>
-                    </View>
-                  )}
-                </View>
-              </GlassCard>
-            );
-          }}
-        />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
-  container: {
-    flex: 1,
-    paddingTop: SPACING.md,
-  },
-  centered: {
-    justifyContent: 'center',
+  container: { flex: 1 },
+  content: { padding: SPACING[5], paddingBottom: 100 },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
     alignItems: 'center',
+    marginBottom: SPACING[8],
+    paddingTop: SPACING[4]
   },
-  previewSection: {
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
-  },
-  topToggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    marginHorizontal: SPACING.md,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: SPACING.md,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  toggleBtnActive: {
-    backgroundColor: COLORS.primary,
-  },
-  toggleText: {
-    ...TYPOGRAPHY.label,
-    color: COLORS.textDim,
-    fontSize: 12,
-  },
-  toggleTextActive: {
-    color: '#000',
-  },
-  forgeHeader: {
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-  },
-  forgeSubtitle: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  archetypeTitle: {
-    ...TYPOGRAPHY.h2,
-    color: COLORS.primary,
-    fontWeight: '900',
-    marginBottom: 4,
-    letterSpacing: 2,
-  },
-  statsCard: {
-    marginHorizontal: SPACING.md,
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  statRow: {
-    width: '100%',
-    marginBottom: SPACING.sm,
-  },
-  statLabel: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  xpBarContainer: {
-    height: 6,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  xpBar: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-  },
-  currencyContainer: {
-    alignSelf: 'center',
-    backgroundColor: COLORS.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  currencyText: {
-    ...TYPOGRAPHY.body,
-    fontWeight: '800',
-    color: '#000',
-    fontSize: 12,
-  },
-  tabsWrapper: {
-    height: 50,
-    marginBottom: SPACING.md,
-  },
-  tabsScroll: {
-    paddingHorizontal: SPACING.md,
-  },
-  tab: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    marginRight: 10,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    height: 40,
-    justifyContent: 'center',
-  },
-  tabActive: {
-    backgroundColor: COLORS.primary,
-  },
-  tabText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  tabTextActive: {
-    color: '#000',
-    fontWeight: '700',
-  },
-  itemsGrid: {
-    paddingHorizontal: SPACING.md,
-    paddingBottom: 100,
-  },
-  itemCard: {
-    flex: 1,
-    margin: 6,
-    padding: 12,
-    minHeight: 120,
-  },
-  equippedCard: {
-    borderColor: COLORS.primary,
+  title: { ...TYPOGRAPHY.h1, color: COLORS.text },
+  subtitle: { ...TYPOGRAPHY.body, color: COLORS.textDim, fontSize: 14, marginTop: 4 },
+  balanceBox: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, backgroundColor: 'rgba(124, 140, 255, 0.1)' },
+  balanceText: { ...TYPOGRAPHY.label, color: COLORS.primary, fontSize: 12 },
+
+  tabContainer: { flexDirection: 'row', gap: SPACING[4], marginBottom: SPACING[8] },
+  tab: { paddingVertical: 8, paddingHorizontal: 4, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  activeTab: { borderBottomColor: COLORS.primary },
+  tabText: { ...TYPOGRAPHY.label, color: COLORS.textDim, fontSize: 13 },
+  activeTabText: { color: COLORS.text },
+
+  avatarSection: { gap: SPACING[6] },
+  characterStage: { 
+    padding: SPACING[8], 
+    alignItems: 'center', 
+    borderRadius: RADIUS.xl, 
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)'
   },
-  itemContent: {
-    alignItems: 'center',
+  avatarCircle: { 
+    width: 120, 
+    height: 120, 
+    borderRadius: 60, 
+    backgroundColor: COLORS.surfaceLight, 
+    alignItems: 'center', 
     justifyContent: 'center',
-    flex: 1,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    ...SHADOWS.glowPrimary
   },
-  itemName: {
-    ...TYPOGRAPHY.body,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: COLORS.text,
-  },
-  itemRarity: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-  },
-  actionButton: {
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    opacity: 0.5,
-  },
-  buttonText: {
-    ...TYPOGRAPHY.caption,
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 12,
-  },
-  equippedBadge: {
-    backgroundColor: 'rgba(0, 255, 204, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  equippedText: {
-    fontSize: 10,
-    color: COLORS.primary,
-    fontWeight: '900',
-  }
+  avatarEmoji: { fontSize: 50 },
+  aura: { position: 'absolute', width: 140, height: 140, borderRadius: 70, borderWidth: 2, opacity: 0.3 },
+  characterInfo: { alignItems: 'center', marginTop: SPACING[6] },
+  characterName: { ...TYPOGRAPHY.h2, color: COLORS.text, letterSpacing: 2 },
+  characterStageText: { ...TYPOGRAPHY.caption, color: COLORS.textDim, marginTop: 4 },
+
+  sectionTitle: { ...TYPOGRAPHY.label, color: COLORS.textDim, fontSize: 10, letterSpacing: 1.5, marginTop: SPACING[4] },
+  equippedGrid: { flexDirection: 'row', gap: SPACING[3] },
+  equippedSlot: { flex: 1, alignItems: 'center', gap: 6 },
+  slotBox: { width: '100%', aspectRatio: 1, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.border },
+  slotText: { color: COLORS.textDim, fontSize: 16 },
+  slotLabel: { ...TYPOGRAPHY.caption, fontSize: 8 },
+
+  shopGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING[4] },
+  shopCard: { width: (width - SPACING[5] * 2 - SPACING[4]) / 2, gap: 8 },
+  itemIconBox: { width: '100%', aspectRatio: 1, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surfaceLight },
+  itemName: { ...TYPOGRAPHY.body, fontSize: 14, color: COLORS.textSecondary },
+  priceTag: { flexDirection: 'row', alignItems: 'center' },
+  priceText: { ...TYPOGRAPHY.label, fontSize: 10, color: COLORS.warning },
+
+  anchorsSection: { gap: SPACING[6] },
+  habitHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  habitItem: { flexDirection: 'row', alignItems: 'center', padding: SPACING[5], borderRadius: RADIUS.lg, backgroundColor: COLORS.surface },
+  habitName: { ...TYPOGRAPHY.h3, color: COLORS.text, fontSize: 17 },
+  habitMeta: { ...TYPOGRAPHY.caption, color: COLORS.textDim, marginTop: 2 }
 });

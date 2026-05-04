@@ -8,14 +8,15 @@ interface ChartCardProps {
 export default function ChartCard({ title, children }: ChartCardProps) {
   return (
     <div style={{
-      background: "#ffffff",
-      padding: "24px",
-      borderRadius: "12px",
-      border: "1px solid #e5e7eb",
-      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-      marginTop: 24
+      background: "rgba(255, 255, 255, 0.02)",
+      backdropFilter: "blur(20px)",
+      padding: "32px",
+      borderRadius: "24px",
+      border: "1px solid rgba(255, 255, 255, 0.03)",
+      marginTop: 24,
+      boxShadow: "0 10px 40px 0 rgba(0, 0, 0, 0.2)"
     }}>
-      <h3 style={{ margin: "0 0 24px 0", fontSize: "18px", fontWeight: "600", color: "#111827" }}>{title}</h3>
+      <h3 style={{ margin: "0 0 24px 0", fontSize: "18px", fontWeight: "600", color: "#ffffff", letterSpacing: "0.02em" }}>{title}</h3>
       {children}
     </div>
   );

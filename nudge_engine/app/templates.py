@@ -34,6 +34,20 @@ TEMPLATES = {
             "message": "Energy is low, which usually leads to avoidance. Start small.",
             "priority": 2
         }
+    ],
+    "journey_hook_day_0": [
+        {
+            "type": "intervention",
+            "message": "Do it for 2 minutes. Not perfectly. Just show up.",
+            "priority": 5
+        }
+    ],
+    "journey_awareness_day_3": [
+        {
+            "type": "insight",
+            "message": "Pattern Alert: You tend to avoid difficult tasks in the morning. Try one 5-minute block now.",
+            "priority": 4
+        }
     ]
 }
 

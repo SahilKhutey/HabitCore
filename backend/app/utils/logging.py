@@ -1,6 +1,6 @@
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 class StructuredLogger:
     def __init__(self, name):
@@ -13,7 +13,7 @@ class StructuredLogger:
     
     def _format(self, level, message, **kwargs):
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": level,
             "message": message,
             **kwargs

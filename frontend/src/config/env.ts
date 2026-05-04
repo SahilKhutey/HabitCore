@@ -10,7 +10,7 @@ const ENV = {
     ENV_NAME: "Production",
   },
   development: {
-    API_URL: "http://localhost:8000",
+    API_URL: "http://localhost:8001",
     ENV_NAME: "Development",
   },
 };

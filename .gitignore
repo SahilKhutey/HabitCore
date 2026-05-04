@@ -59,4 +59,6 @@ ehthumbs.db
 Desktop.ini
 
 # Temp / scratch test scripts (keep in repo for now)
-# backend/test_*.py
+# Agent Artifacts
+artifacts/
+.gemini/

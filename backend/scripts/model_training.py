@@ -22,7 +22,7 @@ def train_behavioral_models():
     query = """
         SELECT user_id, execution_score, integrity_score, distraction_minutes, avoidance_score
         FROM derived_signals
-        WHERE date >= (CURRENT_DATE - INTERVAL '30 days')
+        WHERE date >= date('now', '-30 days')
     """
     
     try:

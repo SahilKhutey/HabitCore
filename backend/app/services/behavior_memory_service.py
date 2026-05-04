@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from ..models.behavioral import BehaviorPattern, UserBehaviorLog, RecoveryPlan
 
@@ -46,7 +46,7 @@ class BehaviorMemoryService:
             pattern.insight_value = f"{best_hour}:00"
             pattern.confidence_score = confidence
             pattern.metadata_json = {"distribution": time_slots}
-            pattern.last_updated = datetime.utcnow()
+            pattern.last_updated = datetime.now(timezone.utc)
             
             self.db.commit()
             return [pattern]
@@ -95,7 +95,7 @@ class BehaviorMemoryService:
             pattern.insight_value = worst_day
             pattern.confidence_score = 1.0 - worst_ratio
             pattern.metadata_json = {"success_rate": worst_ratio}
-            pattern.last_updated = datetime.utcnow()
+            pattern.last_updated = datetime.now(timezone.utc)
             
             self.db.commit()
             return [pattern]
@@ -108,18 +108,19 @@ class BehaviorMemoryService:
             BehaviorPattern.user_id == user_id
         ).all()
         
-        return {
-            pattern.insight_key: {
-                "value": pattern.insight_value,
-                "confidence": pattern.confidence_score,
+        return [
+            {
+                "insight_key": pattern.insight_key,
+                "insight_value": pattern.insight_value,
+                "confidence_score": pattern.confidence_score,
                 "metadata": pattern.metadata_json
             }
             for pattern in patterns
-        }
+        ]
     
     def calculate_burnout_score(self, user_id: str, days: int = 7) -> float:
         """Calculate comprehensive burnout risk score"""
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         
         # Get recent logs
         logs = self.db.query(UserBehaviorLog).filter(
@@ -170,7 +171,7 @@ class BehaviorMemoryService:
                         "Practice deep breathing exercises"
                     ]
                 },
-                expires_at=datetime.utcnow() + timedelta(days=3)
+                expires_at=datetime.now(timezone.utc) + timedelta(days=3)
             )
             self.db.add(plan)
             self.db.commit()

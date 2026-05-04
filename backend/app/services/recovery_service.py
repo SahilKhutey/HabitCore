@@ -1,6 +1,6 @@
 import random
 from typing import Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 class RecoveryService:
     def __init__(self):
@@ -60,8 +60,8 @@ class RecoveryService:
         return {
             **strategy,
             'severity': severity,
-            'created_at': datetime.utcnow().isoformat(),
-            'expires_at': (datetime.utcnow() + timedelta(days=strategy['duration'])).isoformat()
+            'created_at': datetime.now(timezone.utc).isoformat(),
+            'expires_at': (datetime.now(timezone.utc) + timedelta(days=strategy['duration'])).isoformat()
         }
     
     def get_failure_recovery_message(self, failed_habit: str, streak: int) -> str:

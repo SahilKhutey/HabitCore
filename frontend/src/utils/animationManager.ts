@@ -8,26 +8,30 @@ if (Platform.OS !== 'web') {
   }
 }
 
-export type RewardType = "xp" | "coins" | "level_up" | "streak" | "success" | "error";
+export type RewardType = "xp" | "coins" | "level_up" | "streak" | "success" | "error" | "impactLight" | "impactMedium" | "impactHeavy" | "notification";
 
 export const triggerHaptic = (type: RewardType) => {
   if (!Haptics) return;
   
   switch (type) {
     case "xp":
+    case "impactLight":
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       break;
     case "coins":
+    case "impactMedium":
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       break;
-    case "level_up":
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      break;
     case "streak":
+    case "impactHeavy":
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       break;
+    case "level_up":
     case "success":
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      break;
+    case "notification":
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       break;
     case "error":
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

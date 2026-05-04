@@ -12,6 +12,7 @@ class User(Base):
     password_hash = Column(String)
     xp = Column(Integer, default=0)
     level = Column(Integer, default=1)
+    current_streak = Column(Integer, default=0)
     is_premium = Column(Boolean, default=False)
     followers = Column(Integer, default=0)
     coins = Column(Integer, default=0)

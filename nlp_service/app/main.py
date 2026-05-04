@@ -1,8 +1,19 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from app.schemas import TextInput, SignalOutput
 from app.pipeline import process_text
+from app.observability import setup_observability
 
-app = FastAPI(title="NLP Behavioral Engine")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic can go here
+    yield
+    # Shutdown logic can go here
+
+app = FastAPI(title="NLP Behavioral Engine", lifespan=lifespan)
+
+# Initialize Observability
+setup_observability(app, service_name="nlp_service")
 
 @app.get("/health")
 def health():

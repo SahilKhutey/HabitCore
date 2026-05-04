@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+import datetime
 from app.models.user import User
 from app.models.habit_log import HabitLog
 from app.schemas.user import UserSchema
@@ -137,6 +138,34 @@ from pydantic import BaseModel
 class ArchetypeRequest(BaseModel):
     archetype: str
     seed_habits: bool = True
+
+class OnboardingInput(BaseModel):
+    change_goal: str
+    primary_struggle: str
+    stuck_moment: str
+    archetype: Optional[str] = None
+
+@router.post("/onboarding", summary="Submit initial onboarding data to seed PsychEngine")
+def submit_onboarding(data: OnboardingInput, user=Depends(auth_required), db: Session = Depends(get_db)):
+    """
+    Captures initial psychological state and seeds the behavioral journey.
+    """
+    user.onboarding_state = {
+        "change_goal": data.change_goal,
+        "primary_struggle": data.primary_struggle,
+        "stuck_moment": data.stuck_moment,
+        "completed_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    }
+    
+    if data.archetype:
+        # Reuse existing archetype logic if provided
+        set_archetype(ArchetypeRequest(archetype=data.archetype), user=user, db=db)
+    
+    db.commit()
+    return {
+        "status": "onboarding_completed",
+        "message": "Let's understand how you think, not just what you do."
+    }
 
 @router.post("/set-archetype")
 def set_archetype(data: ArchetypeRequest, user=Depends(auth_required), db: Session = Depends(get_db)):

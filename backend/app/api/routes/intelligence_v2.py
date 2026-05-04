@@ -7,7 +7,7 @@ from app.api.deps import get_db, auth_required
 from app.ml.models.avoidance_model import AvoidanceModel
 from app.ml.features.feature_builder import build_daily_features
 from app.models.intelligence_models import DailyLog, Event, ModelRegistry
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from app.ml.core.features import build_behavioral_features
 from app.models.intelligence_models import DailyLog, Event, ModelRegistry, PredictionLog

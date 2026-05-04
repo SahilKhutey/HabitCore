@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Float, DateTime, Integer, JSON, ForeignKey
 from app.db.declarative import Base
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 class BehaviorPattern(Base):
@@ -12,7 +12,7 @@ class BehaviorPattern(Base):
     insight_key = Column(String)    # 'best_time', 'worst_day', 'mood_habit_correlation'
     insight_value = Column(String)
     confidence_score = Column(Float, default=0.0)
-    last_updated = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     metadata_json = Column(JSON, name="metadata")  # Use metadata_json to avoid conflict with Base.metadata
 
 class UserBehaviorLog(Base):
@@ -20,7 +20,7 @@ class UserBehaviorLog(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id"), index=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     event_type = Column(String)  # 'habit_completed', 'checkin', 'mood_change'
     event_data = Column(JSON)
     context = Column(JSON)  # time_of_day, day_of_week, etc.
@@ -34,5 +34,5 @@ class RecoveryPlan(Base):
     plan_type = Column(String)     # 'habit_reduction', 'micro_habits', 'rest_day'
     actions = Column(JSON)         # Specific recovery actions
     active = Column(Integer, default=1)  # 0 or 1
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime, nullable=True)

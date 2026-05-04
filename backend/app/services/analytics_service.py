@@ -3,10 +3,11 @@ from app.models.analytics import AnalyticsEvent
 from app.models.user import User
 from app.models.habit import Habit
 from app.models.habit_log import HabitLog
-from app.services.websocket_service import manager
+from app.services.core.kafka_service import KafkaService
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.core.constants import IDENTITY_WEIGHTS
+from app.services.websocket_service import manager
 
 class AnalyticsService:
     @staticmethod
@@ -19,7 +20,7 @@ class AnalyticsService:
         db.add(event)
         db.commit()
         
-        # Broadcast via WebSockets (async)
+        # 1. Broadcast via WebSockets (async)
         event_data = {
             "user_id": user_id,
             "event_type": event_type,
@@ -31,8 +32,15 @@ class AnalyticsService:
             if loop.is_running():
                 loop.create_task(manager.broadcast(event_data))
         except RuntimeError:
-            # Called from a thread without an event loop
             pass
+
+        # 2. Push to Kafka for real-time streaming pipeline
+        KafkaService.send_behavioral_event(
+            user_id=user_id,
+            event_type=event_type,
+            value=metadata.get("value", 1.0),
+            metadata=metadata
+        )
 
     @staticmethod
     def get_identity_pulse(db: Session, user_id: str):
@@ -45,7 +53,7 @@ class AnalyticsService:
             return {}
 
         # 1. Fetch completions from last 30 days
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         completions = db.query(HabitLog.id, Habit.name).join(Habit, HabitLog.habit_id == Habit.id).filter(
             Habit.user_id == user_id,
             HabitLog.completed_at >= thirty_days_ago

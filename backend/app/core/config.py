@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # Monetization
     FREE_HABIT_LIMIT: int = 3
     OPENAI_API_KEY: str = "" # Add your key in .env
+    
+    # Message Broker / Cache
+    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
+    REDIS_URL: str = "redis://redis:6379"
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), f".env.{os.getenv('APP_ENV', 'development')}"),

@@ -64,6 +64,14 @@ export default function LoginScreen() {
           >
             <Text style={styles.buttonText}>{loading ? 'Loading...' : 'Login'}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.linkButton} 
+            onPress={() => router.push('/auth/register' as any)}
+            disabled={loading}
+          >
+            <Text style={styles.linkText}>Don't have an account? Register</Text>
+          </TouchableOpacity>
         </GlassCard>
       </View>
     </KeyboardAvoidingView>
@@ -117,5 +125,13 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     marginBottom: SPACING.sm,
     textAlign: 'center',
+  },
+  linkButton: {
+    marginTop: SPACING.lg,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: COLORS.primary,
+    fontSize: 14,
   },
 });

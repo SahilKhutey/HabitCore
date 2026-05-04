@@ -4,29 +4,26 @@ export interface UserState {
   id: string | null;
   email: string | null;
   token: string | null;
-   xp: number;
-   currentXP: number;
-   nextLevelXP: number;
-   level: number;
-   isPremium: boolean;
-   paywall_variant: string;
-   mode: string;
-    progress_style: string;
-    engagement_level: string;
-    identity_goal: string;
-   adaptiveMode: string;
-   focusMode: boolean;
-   coins: number;
-   streakFreeze: number;
-   identityPulse: number;
-   burnoutScore: number;
-   recoveryMode: string;
-   identityGoal: string;
-   setUserInfo: (info: Partial<UserState>) => void;
-   updatePreferences: (prefs: Partial<UserState>) => void;
-   setToken: (token: string | null) => void;
-   addXp: (amount: number) => void;
-   resetUser: () => void;
+  xp: number;
+  level: number;
+  isPremium: boolean;
+  paywallVariant: string;
+  mode: string;
+  progressStyle: string;
+  engagementLevel: string;
+  identityGoal: string;
+  adaptiveMode: string;
+  focusMode: boolean;
+  coins: number;
+  streakFreeze: number;
+  identityPulse: number;
+  burnoutScore: number;
+  recoveryMode: string;
+  setUserInfo: (info: Partial<UserState>) => void;
+  updatePreferences: (prefs: Partial<UserState>) => void;
+  setToken: (token: string | null) => void;
+  addXp: (amount: number) => void;
+  resetUser: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -34,15 +31,13 @@ export const useUserStore = create<UserState>((set) => ({
   email: null,
   token: null,
   xp: 0,
-  currentXP: 0,
-  nextLevelXP: 100,
   level: 1,
   isPremium: false,
-  paywall_variant: 'A',
+  paywallVariant: 'A',
   mode: 'Consistency',
-  progress_style: 'bar',
-  engagement_level: 'Balanced',
-  identity_goal: 'Productive',
+  progressStyle: 'bar',
+  engagementLevel: 'Balanced',
+  identityGoal: 'Productive',
   adaptiveMode: 'normal',
   focusMode: false,
   coins: 100,
@@ -50,14 +45,13 @@ export const useUserStore = create<UserState>((set) => ({
   identityPulse: 0,
   burnoutScore: 0,
   recoveryMode: 'normal',
-  identityGoal: 'Productive',
   setUserInfo: (info) => set((state) => ({ ...state, ...info })),
   updatePreferences: (prefs) => set((state) => ({ ...state, ...prefs })),
   setToken: (token) => set({ token }),
   addXp: (amount) => set((state) => ({ xp: state.xp + amount })),
   resetUser: () => set({ 
-    id: null, email: null, token: null, xp: 0, currentXP: 0, nextLevelXP: 100, 
-    level: 1, isPremium: false, coins: 100, streakFreeze: 1,
-    progress_style: 'bar', engagement_level: 'Balanced', identity_goal: 'Productive'
+    id: null, email: null, token: null, xp: 0, level: 1, isPremium: false, 
+    coins: 100, streakFreeze: 1, progressStyle: 'bar', 
+    engagementLevel: 'Balanced', identityGoal: 'Productive'
   }),
 }));

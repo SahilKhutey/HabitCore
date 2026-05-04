@@ -22,3 +22,9 @@ pytest
 pytest-asyncio
 httpx
 kafka-python
+# Observability
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
+prometheus-fastapi-instrumentator
+opentelemetry-instrumentation-kafka-python

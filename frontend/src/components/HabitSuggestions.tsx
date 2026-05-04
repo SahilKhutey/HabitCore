@@ -29,7 +29,7 @@ const SUGGESTIONS = {
 
 export const HabitSuggestions = () => {
   const user = useUserStore();
-  const identity = (user.identity_goal as keyof typeof SUGGESTIONS) || "Productive";
+  const identity = (user.identityGoal as keyof typeof SUGGESTIONS) || "Productive";
   const items = SUGGESTIONS[identity] || SUGGESTIONS.Productive;
 
   return (

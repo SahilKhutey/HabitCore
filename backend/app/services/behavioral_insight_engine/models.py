@@ -6,7 +6,7 @@ existing String-UUID pattern (no PostgreSQL dialect required).
 """
 from sqlalchemy import Column, String, Float, DateTime, Boolean, Text, Integer
 from app.db.declarative import Base
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 
@@ -37,4 +37,4 @@ class BehavioralInsight(Base):
     is_read = Column(Boolean, default=False)
     is_dismissed = Column(Boolean, default=False)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

@@ -13,14 +13,38 @@ const IDENTITIES = [
   { id: 'productive', label: 'High Achiever', icon: <Briefcase color={COLORS.accent} />, habits: ['Read 10 pages', 'Plan Tomorrow'] },
 ];
 
+import { useUserStore } from '../src/store/useUserStore';
+
 export default function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reminderTime, setReminderTime] = useState('09:00 AM');
+  
+  const setUserInfo = useUserStore((s) => s.setUserInfo);
 
   const nextStep = () => {
-    if (step < 4) setStep(step + 1);
-    else router.replace('/auth/login');
+    if (step < 4) {
+        setStep(step + 1);
+    } else {
+        // Save to store
+        const goalMap: Record<string, string> = {
+            'fit': 'Fit',
+            'focused': 'Calm',
+            'productive': 'Productive'
+        };
+        const archMap: Record<string, string> = {
+            'fit': 'warrior',
+            'focused': 'monk',
+            'productive': 'builder'
+        };
+        
+        setUserInfo({
+            identityGoal: goalMap[selectedId || 'productive'],
+            mode: archMap[selectedId || 'productive']
+        });
+        
+        router.replace('/auth/login');
+    }
   };
 
   return (

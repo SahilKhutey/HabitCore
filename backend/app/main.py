@@ -1,6 +1,14 @@
+import sys
+import os
+from contextlib import asynccontextmanager
+
+# Add root project directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, avatar_routes
+
+from app.api.routes import auth, habits, users, payments, referrals, admin, preferences, shop, analytics, gamification, psychological, avatar_routes, identity_dashboard
 from app.services.behavioral_insight_engine.routes import router as insights_router
 from app.services.cognitive_engine.routes import router as cognitive_router
 from app.services.cognitive_training_system.routes import router as cbts_router
@@ -8,41 +16,28 @@ from app.services.behavioral_feedback_engine.routes import router as bfe_router
 from app.api.routes.intelligence import router as intelligence_router
 from app.api.routes.intelligence_v2 import router as intelligence_v2_router
 from app.services.reflection_engine.routes import router as reflection_router
-from app.db.session import engine
+
+from app.db.session import engine, SessionLocal
 from app.db.declarative import Base
 import app.db.base
 from app.scheduler import scheduler
 from app.services.websocket_service import manager
+from app.services.nudge_engine import NudgeEngine
+from app.api.routes.seed_shop import seed_shop_items
+from app.observability import setup_observability
+import redis
+import time
+from fastapi import Request
+import logging
 
+logger = logging.getLogger("backend")
+
+# Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8081",
-        "http://localhost:8082",
-        "http://localhost:8083",
-        "http://localhost:8084",
-        "http://localhost:5173",
-        "http://127.0.0.1:8081",
-        "http://127.0.0.1:8082",
-        "http://127.0.0.1:8083",
-        "http://127.0.0.1:8084",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-from app.services.nudge_engine import NudgeEngine
-from app.db.session import SessionLocal
-from app.api.routes.seed_shop import seed_shop_items
-
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
     scheduler.start()
     
     # Seed shop items if empty
@@ -52,7 +47,7 @@ def startup_event():
     finally:
         db.close()
     
-    # Nudge Engine: Run every 6 hours to identify sliding users
+    # Nudge Engine: Run every 6 hours
     @scheduler.scheduled_job("interval", hours=6)
     def run_nudges():
         db = SessionLocal()
@@ -61,8 +56,44 @@ def startup_event():
             print(f"Nudge Engine: Sent {count} identity nudges.")
         finally:
             db.close()
+            
+    yield
+    # Shutdown logic
+    scheduler.shutdown()
 
+app = FastAPI(lifespan=lifespan)
 
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8081", "http://localhost:8082", "http://localhost:8083", "http://localhost:8084",
+        "http://localhost:5173", "http://127.0.0.1:8081", "http://127.0.0.1:8082", "http://127.0.0.1:8083",
+        "http://127.0.0.1:8084", "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize Observability
+setup_observability(app, service_name="backend")
+
+# Redis client for self-healing status
+redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=6379, decode_responses=True)
+
+# Throttling Middleware
+@app.middleware("http")
+async def throttling_middleware(request: Request, call_next):
+    if request.url.path == "/habits/events":
+        if redis_client.get("ingestion_rate_limit") == "enabled":
+            logger.warning("THROTTLING ACTIVE: Slowing down ingestion...")
+            time.sleep(0.5) # Add 500ms delay to demonstration backpressure
+            
+    response = await call_next(request)
+    return response
+
+# Routers
 app.include_router(auth.router, prefix="/auth")
 app.include_router(habits.router, prefix="/habits")
 app.include_router(users.router, prefix="/users")
@@ -82,6 +113,7 @@ app.include_router(bfe_router, prefix="/bfe", tags=["behavioral-feedback-engine"
 app.include_router(intelligence_router, prefix="/intelligence", tags=["behavioral-intelligence"])
 app.include_router(intelligence_v2_router, prefix="/intelligence/v2", tags=["behavioral-intelligence-v2"])
 app.include_router(reflection_router, prefix="/reflection", tags=["reflection-engine"])
+app.include_router(identity_dashboard.router, prefix="/identity", tags=["identity-dashboard"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -94,4 +126,4 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.get("/")
 def root():
-    return {"message": "HabitHero API running"}
+    return {"message": "HabitCore API running", "observability": "enabled"}

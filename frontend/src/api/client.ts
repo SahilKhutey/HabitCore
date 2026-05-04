@@ -25,6 +25,10 @@ export const login = async (email: string, password: string) => {
   return api("/auth/login", "POST", { email, password });
 };
 
+export const register = async (email: string, password: string) => {
+  return api("/auth/register", "POST", { email, password });
+};
+
 export const createHabit = async (name: string, time: string | null, token: string) => {
   return api("/habits/create", "POST", { name, time }, token);
 };
@@ -119,4 +123,12 @@ export const getDailyChallenge = async () => {
 
 export const getUserProgress = async (token: string) => {
   return api("/psychological/user-progress", "GET", null, token);
+};
+
+export const getHabitState = async (token: string) => {
+  return api("/habits/state", "GET", null, token);
+};
+
+export const resetBurnout = async (token: string) => {
+  return api("/habits/reset-burnout", "POST", null, token);
 };

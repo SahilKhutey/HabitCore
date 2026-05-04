@@ -1,64 +1,77 @@
+import random
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.habit import Habit
-from app.models.habit_log import HabitLog
 from app.services.analytics_service import AnalyticsService
-from app.core.constants import IDENTITY_WEIGHTS
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 class NudgeEngine:
-    @staticmethod
-    def identify_sliding_users(db: Session):
-        """
-        Identifies users who haven't completed a habit in the last 24-48 hours.
-        These users are at high risk of losing momentum (the 'Sliding' state).
-        """
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-        risk_cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
-        
-        # Find habits that were active recently but missed today
-        sliding_habits = db.query(Habit).filter(
-            Habit.done == False,
-            Habit.created_at < cutoff
-        ).all()
-        
-        return sliding_habits
+    PHASE_TEMPLATES = {
+        'hook': [
+            "Your brain is forming a new pathway. Complete {habit} for a quick dopamine win!",
+            "Day {day}: Small wins lead to big shifts. Activate {habit} now.",
+            "The first few days are about neurological mapping. Don't skip {habit}!"
+        ],
+        'awareness': [
+            "Observation: Your energy peaks after {habit}. Keep the data flowing.",
+            "Pattern detected: You usually do {habit} by now. Seeing a pattern?",
+            "Awareness is the first step to mastery. Check in on your {habit}."
+        ],
+        'intervention': [
+            "Resilience check: Life is busy, but a '{identity}' doesn't negotiate with {habit}.",
+            "This is the friction point. Breaking this loop is where the change happens.",
+            "Intervene on your old self. Complete {habit} to prove you're in control."
+        ],
+        'identity': [
+            "Evidence of a new you: You've done {habit} consistently. You ARE a '{identity}'.",
+            "This isn't a habit anymore, it's who you are. Keep embodying the '{identity}'.",
+            "Your identity as a '{identity}' is now 80% solidified. Finish {habit} to lock it in."
+        ]
+    }
 
     @staticmethod
-    def generate_identity_nudge(user: User, habit: Habit):
-        """
-        Generates a nudge message based on the user's identity goal.
-        Example: 'A "Fit" person wouldn't miss a Gym session today. Keep it going!'
-        """
-        identity = user.identity_goal or "Hero"
-        messages = [
-            f"A '{identity}' person stays consistent. Don't forget your {habit.name} today!",
-            f"Momentum is your superpower. Your '{identity}' identity is growing—keep it up!",
-            f"One small action for a '{identity}' hero. Your {habit.name} is waiting."
-        ]
+    def get_user_phase(user: User) -> str:
+        streak = user.current_streak or 0
+        if streak <= 2: return 'hook'
+        if streak <= 7: return 'awareness'
+        if streak <= 14: return 'intervention'
+        return 'identity'
+
+    @staticmethod
+    def generate_nudge(user: User, habit: Habit) -> str:
+        phase = NudgeEngine.get_user_phase(user)
+        templates = NudgeEngine.PHASE_TEMPLATES.get(phase, NudgeEngine.PHASE_TEMPLATES['hook'])
         
-        import random
-        return random.choice(messages)
+        template = random.choice(templates)
+        return template.format(
+            habit=habit.name,
+            identity=user.identity_goal or "Hero",
+            day=user.current_streak or 1
+        )
 
     @staticmethod
     def process_nudges(db: Session):
         """
-        Main loop to identify sliding users and queue notifications.
+        Identifies users needing a nudge and logs events.
         """
-        sliding_habits = NudgeEngine.identify_sliding_users(db)
+        # Logic to find users who haven't completed their daily rituals yet
+        # For simplicity in this iteration, we look for 'sliding' habits
+        # (habits not marked 'done' today)
+        from app.models.habit import Habit
+        
+        pending_habits = db.query(Habit).filter(Habit.done == False).all()
         nudges_sent = 0
         
-        for habit in sliding_habits:
+        for habit in pending_habits:
             user = db.query(User).filter(User.id == habit.user_id).first()
-            if not user:
-                continue
-                
-            message = NudgeEngine.generate_identity_nudge(user, habit)
+            if not user: continue
             
-            # Log event for notification service to pick up
+            message = NudgeEngine.generate_nudge(user, habit)
+            
             AnalyticsService.log_event(db, user.id, "nudge_generated", {
                 "habit_id": str(habit.id),
                 "message": message,
+                "phase": NudgeEngine.get_user_phase(user),
                 "identity": user.identity_goal
             })
             nudges_sent += 1

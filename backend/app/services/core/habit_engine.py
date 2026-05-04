@@ -9,7 +9,7 @@ It has NO knowledge of rewards, gamification, or XP.
 Those concerns live in services/experience/reward_engine.py.
 """
 from typing import List, Optional, Dict, Any, Tuple
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.models.habit import Habit
@@ -87,7 +87,7 @@ class HabitEngine:
             habit_id=habit_id,
             user_id=user_id,
             completed=True,
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(timezone.utc),
         )
         self.db.add(log)
         self.db.commit()
@@ -207,7 +207,7 @@ class HabitEngine:
             return None
 
         if habit.last_adjusted_at:
-            days_since = (datetime.utcnow() - habit.last_adjusted_at).days
+            days_since = (datetime.now(timezone.utc) - habit.last_adjusted_at).days
             if days_since < 3:
                 return None
 
@@ -222,7 +222,7 @@ class HabitEngine:
             elif habit.difficulty == "medium": habit.difficulty = "easy"
 
         if habit.difficulty != old_difficulty:
-            habit.last_adjusted_at = datetime.utcnow()
+            habit.last_adjusted_at = datetime.now(timezone.utc)
             self.db.commit()
             return habit.difficulty
 
@@ -244,5 +244,5 @@ class HabitEngine:
             "difficulty":  habit.difficulty,
             "streak":      streak,
             "already_done": already_done,
-            "completed_at": datetime.utcnow().isoformat(),
+            "completed_at": datetime.now(timezone.utc).isoformat(),
         }

@@ -91,7 +91,12 @@ def daily_checkin(request: CheckinRequest, user=Depends(auth_required), db: Sess
         db.commit()
         db.refresh(checkin)
         
-        # Generate insights
+        # 1. Push reflection to Kafka for NLP analysis (asynchronous)
+        if request.reflection:
+            from app.services.core.kafka_service import KafkaService
+            KafkaService.send_user_text_event(str(user.id), request.reflection)
+
+        # 2. Generate insights
         checkin_dict = {
             "mood": checkin.mood,
             "energy_morning": checkin.energy_morning,

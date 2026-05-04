@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
 from ..models.behavioral import UserBehaviorLog
@@ -9,7 +9,7 @@ class DataLifecycleManager:
     
     def cleanup_old_logs(self, retention_days: int = 14):
         """Clean up old behavior logs"""
-        cutoff = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
         
         # Delete old logs
         delete_stmt = delete(UserBehaviorLog).where(

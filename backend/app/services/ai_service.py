@@ -87,6 +87,48 @@ class AIService:
             return "Consider taking a lighter day today. Your consistency will benefit from occasional rest."
         return "Keep focusing on small, consistent steps. You're building a powerful routine!"
 
+    def generate_instant_insight(self, user_id: str, onboarding_data: Dict[str, Any], first_reflection: str) -> str:
+        """
+        Generates the Day 0 'Aha moment' insight based on onboarding and first reflection.
+        """
+        prompt = f"""
+        User Onboarding:
+        - Goal: {onboarding_data.get('change_goal')}
+        - Struggle: {onboarding_data.get('primary_struggle')}
+        - Stuck Moment: {onboarding_data.get('stuck_moment')}
+        
+        First Reflection:
+        "{first_reflection}"
+        
+        Task: Provide a high-impact, 'Aha moment' psychological insight. 
+        It should feel like the app deeply understands their internal patterns (e.g., avoidance vs lack of discipline).
+        Max 2 sentences. Be provocative but compassionate.
+        """
+        
+        if not self.client:
+            # High-quality fallback for the critical Day 0 experience
+            if "avoid" in first_reflection.lower() or "procrastinate" in first_reflection.lower():
+                return "I think you're not lacking discipline—you're avoiding the discomfort of starting. Your brain is choosing safety over growth."
+            return "You're clearly driven by your goals, but your 'stuck moments' suggest a conflict between your ambitions and your current self-image."
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a master psychological coach specializing in behavioral change and identity shifts."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=150,
+                temperature=0.8
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"AI Service error in instant insight: {e}")
+            return "It seems your resistance isn't about the task itself, but the identity shift that comes with completing it."
+
     def analyze_behavior(self, data: dict) -> str:
         """Legacy method for backward compatibility"""
         return "AI analysis complete."

@@ -5,3 +5,9 @@ sqlalchemy
 psycopg2-binary
 pydantic
 redis
+
+# Observability
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp
+prometheus-fastapi-instrumentator

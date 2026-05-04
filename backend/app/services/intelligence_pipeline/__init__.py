@@ -3,7 +3,7 @@ IntelligencePipeline — The unified production pipeline for Behavioral Intellig
 Enforces: Raw → Signals → Patterns → Insights → Adaptation.
 """
 from typing import List, Dict, Any, Optional
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
@@ -68,7 +68,7 @@ class IntelligencePipeline:
             "event_category": category.value,
             "event_value": value,
             "metadata": metadata or {},
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         normalized = normalize_event(raw_event)
         
@@ -200,7 +200,7 @@ class IntelligencePipeline:
             
             pat.description = dp.message
             pat.confidence = dp.confidence
-            pat.last_seen = datetime.utcnow()
+            pat.last_seen = datetime.now(timezone.utc)
             pat.frequency = (pat.frequency or 0) + 1
             pat.trigger_conditions = dp.supporting_data
         
@@ -221,7 +221,7 @@ class IntelligencePipeline:
             loop.description = dl.message
             loop.severity = dl.confidence
             loop.frequency = (loop.frequency or 0) + 1
-            loop.last_seen = datetime.utcnow()
+            loop.last_seen = datetime.now(timezone.utc)
 
         self.db.flush()
 
@@ -260,7 +260,7 @@ class IntelligencePipeline:
                         related_pattern_id=pat.id,
                         priority=pat.confidence * (pat.impact_score or 1.0),
                         confidence=pat.confidence,
-                        expires_at=datetime.utcnow() + timedelta(days=3)
+                        expires_at=datetime.now(timezone.utc) + timedelta(days=3)
                     )
                     self.db.add(insight)
 

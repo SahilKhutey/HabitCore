@@ -33,7 +33,7 @@ Skill update rules:
   self_talk_quality      ← thought_type="helpful" or belief_shift > 30%
 """
 from typing import Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models.cognitive_skill_state import CognitiveSkillState
@@ -101,7 +101,7 @@ class SkillTracker:
         # ── Update overall score ──────────────────────────────────────────
         updated_skills = skill_state.skill_dict()
         skill_state.overall_score = round(sum(updated_skills.values()) / len(updated_skills), 4)
-        skill_state.updated_at    = datetime.utcnow()
+        skill_state.updated_at    = datetime.now(timezone.utc)
 
         return deltas
 

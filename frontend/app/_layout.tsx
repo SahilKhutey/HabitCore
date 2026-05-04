@@ -18,6 +18,7 @@ import {
   Inter_600SemiBold 
 } from '@expo-google-fonts/inter';
 import 'react-native-reanimated';
+import NudgeToast from '../src/components/NudgeToast';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -58,8 +59,11 @@ export default function RootLayout() {
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="auth/login" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="reflection" options={{ presentation: 'fullScreenModal' }} />
+            <Stack.Screen name="insight" options={{ presentation: 'transparentModal', animation: 'fade' }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: true }} />
           </Stack>
+          <NudgeToast />
         </ThemeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

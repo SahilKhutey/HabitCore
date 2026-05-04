@@ -36,6 +36,7 @@ from app.scheduler import scheduler
 def mock_scheduler():
     # Prevent the scheduler from actually starting and crashing during tests
     scheduler.start = lambda: None
+    scheduler.shutdown = lambda: None
     yield
 
 @pytest.fixture(scope="function")

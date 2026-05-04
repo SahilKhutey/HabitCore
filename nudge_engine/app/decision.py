@@ -25,6 +25,15 @@ def score_nudge(pattern: Dict[str, Any], context: Dict[str, Any]) -> float:
     if context.get("active_session"):
         score += 0.2
         
+    # 5. Journey Phase Boost (30% weight - Overrides for critical days)
+    journey_day = context.get("journey_day", 0)
+    p_type = pattern.get("pattern_type") or pattern.get("event_type")
+    
+    if journey_day == 0 and p_type == "journey_hook_day_0":
+        score += 0.3 # Guarantee Day 0 hook
+    elif 3 <= journey_day <= 7 and p_type == "journey_awareness_day_3":
+        score += 0.3
+        
     return min(score, 1.0)
 
 def should_skip_nudge(user_id: str, last_nudge_at: Optional[datetime]) -> bool:

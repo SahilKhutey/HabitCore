@@ -1,6 +1,6 @@
 import random
 from typing import Dict, Any, List
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from app.models.user import User
 from app.models.gamification import DailyChallenge
 from app.models.habit_log import HabitLog
@@ -33,7 +33,7 @@ class GamificationService:
     
     def calculate_time_until_streak_loss(self, last_activity: datetime) -> str:
         deadline = last_activity + timedelta(days=1)
-        time_left = deadline - datetime.utcnow()
+        time_left = deadline - datetime.now(timezone.utc)
         if time_left.total_seconds() <= 0: return "0h 0m"
         hours, minutes = int(time_left.total_seconds() / 3600), int((time_left.total_seconds() % 3600) / 60)
         return f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
@@ -66,7 +66,7 @@ class GamificationService:
 
     def check_challenge_progress(self, db: Session, user_id: str, challenge: DailyChallenge) -> Dict[str, Any]:
         if challenge.condition_type == "complete_habits":
-            completed_count = db.query(HabitLog).join(Habit).filter(
+            completed_count = db.query(HabitLog).join(Habit, HabitLog.habit_id == Habit.id).filter(
                 HabitLog.date == date.today(),
                 Habit.user_id == user_id
             ).count()

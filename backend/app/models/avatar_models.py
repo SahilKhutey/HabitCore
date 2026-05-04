@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, Float, JSON, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from app.db.declarative import Base
 
@@ -50,8 +50,8 @@ class UserAvatar(Base):
     
     # Timestamps
     last_evolution = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 class AvatarItem(Base):
     __tablename__ = "avatar_items"
@@ -74,4 +74,4 @@ class AvatarItem(Base):
     coin_boost = Column(Float, default=0.0)
     streak_protection = Column(Boolean, default=False)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

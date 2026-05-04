@@ -19,7 +19,7 @@ Time decay: older stored insights have their rank_score reduced so fresh
 insights surface higher.
 """
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from sqlalchemy.orm import Session
 
 from .models import BehavioralInsight
@@ -201,7 +201,7 @@ class BehavioralInsightService:
         cutoff = date.today() - timedelta(days=window_days)
 
         # All habit logs in the window
-        logs = self.db.query(HabitLog).join(Habit).filter(
+        logs = self.db.query(HabitLog).join(Habit, HabitLog.habit_id == Habit.id).filter(
             Habit.user_id == user_id,
             HabitLog.date >= cutoff,
         ).all()
@@ -289,7 +289,7 @@ class BehavioralInsightService:
         """
         if not trigger_key:
             return True
-        cutoff = datetime.utcnow() - timedelta(days=DEDUP_WINDOW_DAYS)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=DEDUP_WINDOW_DAYS)
         existing = self.db.query(BehavioralInsight).filter(
             BehavioralInsight.user_id == user_id,
             BehavioralInsight.trigger_key == trigger_key,
@@ -309,7 +309,7 @@ class BehavioralInsightService:
             impact_score=raw["impact"],
             rank_score=raw["rank_score"],
             trigger_key=raw.get("trigger_key"),
-            last_triggered_at=datetime.utcnow(),
+            last_triggered_at=datetime.now(timezone.utc),
         )
         self.db.add(insight)
         self.db.commit()
@@ -321,7 +321,7 @@ class BehavioralInsightService:
         Reduce rank_score for older insights so fresh ones surface higher.
         Applied in-place to all unread, undismissed insights older than 1 day.
         """
-        yesterday = datetime.utcnow() - timedelta(days=1)
+        yesterday = datetime.now(timezone.utc) - timedelta(days=1)
         old_insights = self.db.query(BehavioralInsight).filter(
             BehavioralInsight.user_id == user_id,
             BehavioralInsight.created_at < yesterday,
@@ -329,7 +329,7 @@ class BehavioralInsightService:
         ).all()
 
         for ins in old_insights:
-            age_days    = (datetime.utcnow() - ins.created_at).days
+            age_days    = (datetime.now(timezone.utc) - ins.created_at).days
             decay       = age_days * TIME_DECAY_DAILY
             ins.rank_score = max(0.0, round(ins.rank_score - decay, 4))
 

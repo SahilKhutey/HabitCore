@@ -17,7 +17,7 @@ Skill taxonomy is CBT + ACT aligned:
 """
 from sqlalchemy import Column, String, Float, Integer, DateTime
 from app.db.declarative import Base
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 
@@ -55,8 +55,8 @@ class CognitiveSkillState(Base):
     cognitive_level        = Column(Integer, default=1)   # 1–5 (ProgressionEngine output)
     overall_score          = Column(Float, default=0.0)   # mean of all skills
 
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def skill_dict(self) -> dict:
         """Return all 14 skills as a flat dict for computation."""
