@@ -1,65 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MotiView, AnimatePresence } from 'moti';
 import { COLORS, SPACING, TYPOGRAPHY, RADIUS, SHADOWS } from '../theme/theme';
-import { Bell } from 'lucide-react-native';
+import { Bell, CheckCircle, AlertCircle, Info } from 'lucide-react-native';
 import { triggerHaptic } from '../utils/animationManager';
-
-interface Nudge {
-  id: string;
-  message: string;
-  type: 'action' | 'reminder';
-}
+import { useNudgeStore } from '../services/NudgeService';
 
 export default function NudgeToast() {
-  const [nudge, setNudge] = useState<Nudge | null>(null);
+  const { activeNudge, hideNudge } = useNudgeStore();
 
-  // Simulation: Show a nudge after 10 seconds for demonstration
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setNudge({
-        id: '1',
-        message: 'You usually stop around now.\nStay for 2 more minutes.',
-        type: 'action'
-      });
-      triggerHaptic('notification');
-    }, 10000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  const getIcon = () => {
+    switch (activeNudge?.type) {
+      case 'success': return <CheckCircle color={COLORS.success} size={18} />;
+      case 'error': return <AlertCircle color={COLORS.danger} size={18} />;
+      default: return <Bell color={COLORS.primary} size={18} />;
+    }
+  };
 
-  if (!nudge) return null;
+  const getBorderColor = () => {
+    switch (activeNudge?.type) {
+      case 'success': return COLORS.success;
+      case 'error': return COLORS.danger;
+      default: return COLORS.primary;
+    }
+  };
 
   return (
     <AnimatePresence>
-      {nudge && (
+      {activeNudge && (
         <MotiView
           from={{ opacity: 0, translateY: 50, scale: 0.95 }}
           animate={{ opacity: 1, translateY: 0, scale: 1 }}
           exit={{ opacity: 0, translateY: 20, scale: 0.95 }}
           style={styles.container}
         >
-          <View style={styles.card}>
-            <View style={styles.glow} />
+          <View style={[styles.card, { borderColor: getBorderColor() }]}>
+            <View style={[styles.glow, { backgroundColor: getBorderColor() }]} />
             <View style={styles.contentContainer}>
-              <View style={styles.iconContainer}>
-                <Bell color={COLORS.primary} size={18} />
+              <View style={[styles.iconContainer, { backgroundColor: `${getBorderColor()}15` }]}>
+                {getIcon()}
               </View>
               
               <View style={styles.textContainer}>
-                <Text style={styles.title}>Behavioral Nudge</Text>
-                <Text style={styles.message}>{nudge.message}</Text>
+                <Text style={[styles.title, { color: getBorderColor() }]}>
+                  {activeNudge.type === 'success' ? 'SYSTEM CONFIRMED' : 
+                   activeNudge.type === 'error' ? 'SYSTEM ALERT' : 
+                   'BEHAVIORAL NUDGE'}
+                </Text>
+                <Text style={styles.message}>{activeNudge.message}</Text>
                 
                 <View style={styles.actions}>
+                  {activeNudge.actionLabel && (
+                    <TouchableOpacity 
+                      onPress={() => {
+                        activeNudge.onAction?.();
+                        hideNudge();
+                      }}
+                      style={[styles.primaryButton, { backgroundColor: getBorderColor() }]}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.primaryText}>{activeNudge.actionLabel}</Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity 
-                    onPress={() => setNudge(null)}
-                    style={styles.primaryButton}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.primaryText}>Continue</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => setNudge(null)}
+                    onPress={hideNudge}
                     style={styles.secondaryButton}
                     activeOpacity={0.7}
                   >
@@ -75,8 +79,6 @@ export default function NudgeToast() {
   );
 }
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
@@ -86,12 +88,11 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   card: {
-    backgroundColor: '#1A1F2E', // Specific nudge background
+    backgroundColor: '#1A1F2E',
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: COLORS.primary, // Specific nudge border
-    ...SHADOWS.glowPrimary, // Specific nudge glow
+    ...SHADOWS.glowPrimary,
   },
   glow: {
     position: 'absolute',
@@ -99,7 +100,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: COLORS.primary,
     opacity: 0.5,
   },
   contentContainer: {
@@ -111,14 +111,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(124, 140, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   textContainer: { flex: 1, gap: SPACING[1] },
   title: { 
     ...TYPOGRAPHY.label, 
-    color: COLORS.primary, 
     fontSize: 10, 
     letterSpacing: 1.5 
   },
@@ -134,7 +132,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING[4] 
   },
   primaryButton: { 
-    backgroundColor: COLORS.primary, 
     paddingHorizontal: SPACING[5], 
     paddingVertical: SPACING[2], 
     borderRadius: RADIUS.lg,

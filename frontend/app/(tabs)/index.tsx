@@ -8,14 +8,15 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { COLORS, SPACING, TYPOGRAPHY, RADIUS, SHADOWS } from '../../src/theme/theme';
 import { api } from '../../src/api/client';
 import { useUserStore } from '../../src/store/useUserStore';
 import { GlassCard } from '../../src/components/GlassCard';
-import { Brain, Activity, ChevronRight, Sparkles, Check, Flame, Zap } from 'lucide-react-native';
+import { Brain, Activity, ChevronRight, Sparkles, Check, Flame, Zap, Plus, X } from 'lucide-react-native';
 import { MotiView, AnimatePresence } from 'moti';
 import { triggerHaptic } from '../../src/utils/animationManager';
 
@@ -27,25 +28,34 @@ export default function HomeScreen() {
   const [journeySummary, setJourneySummary] = useState<any>(null);
   const [habits, setHabits] = useState<any[]>([]);
   const [patterns, setPatterns] = useState<any>(null);
+  const [userState, setUserState] = useState<any>({});
   const { token, email, setUserInfo, level, xp, coins } = useUserStore();
   
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newHabitName, setNewHabitName] = useState('');
+  const [difficulty, setDifficulty] = useState('medium');
+  const [conditionText, setConditionText] = useState('');
+  const [freq, setFreq] = useState('7');
+  const [streakTarget, setStreakTarget] = useState('30');
+  const [domain, setDomain] = useState('mental');
+
   const userName = email ? email.split('@')[0] : 'Sahil';
 
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [journey, patternRes, habitRes] = await Promise.all([
+      const [journey, patternRes, habitRes, stateRes] = await Promise.all([
         api('/identity/summary', 'GET', null, token),
         api('/psychological/behavior/patterns', 'GET', null, token),
         api('/habits/today/status', 'GET', null, token),
+        api('/habits/state', 'GET', null, token)
       ]);
       setJourneySummary(journey);
       setPatterns(patternRes);
       setHabits(habitRes?.habits || []);
       
-      // Update global store if needed
-      const stateRes = await api('/habits/state', 'GET', null, token);
       if (stateRes?.user_state) {
+        setUserState(stateRes.user_state);
         setUserInfo({
           level: stateRes.user_state.level,
           xp: stateRes.user_state.xp,
@@ -54,6 +64,36 @@ export default function HomeScreen() {
       }
     } catch (e) { console.error('Fetch error:', e); }
   }, [token, setUserInfo]);
+
+  const handleCreateHabit = async () => {
+    if (!newHabitName) return;
+    try {
+      setRefreshing(true);
+      const res = await api('/habits/create', 'POST', { 
+        name: newHabitName,
+        difficulty: difficulty,
+        frequency: parseInt(freq),
+        condition: conditionText,
+        streak_target: parseInt(streakTarget),
+        domain: domain
+      }, token!);
+      
+      if (res.id) {
+        triggerHaptic('success');
+        setNewHabitName('');
+        setConditionText('');
+        setFreq('7');
+        setStreakTarget('30');
+        setShowAddModal(false);
+        fetchData();
+      }
+    } catch (e) {
+      console.error(e);
+      triggerHaptic('error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (token) fetchData();
@@ -70,7 +110,6 @@ export default function HomeScreen() {
       triggerHaptic('success');
       const res = await api('/habits/complete', 'POST', { habit_id: habitId }, token!);
       if (res.success) {
-        // Refresh habits list and state
         fetchData();
       }
     } catch (e) {
@@ -145,8 +184,10 @@ export default function HomeScreen() {
         >
           <MotiView 
             animate={{ scale: 1 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            {...({
+              whileHover: { scale: 1.02 },
+              whileTap: { scale: 0.98 }
+            } as any)}
             style={styles.ctaCard}
           >
             <View style={styles.ctaIconBg}>
@@ -198,29 +239,184 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Stats Grid */}
+        {/* Journey Progress */}
         <View style={styles.statsSection}>
-          <Text style={styles.sectionLabel}>Identity Pulse</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>YOUR JOURNEY</Text>
+            <TouchableOpacity onPress={() => router.push('/intelligence' as any)}>
+              <Text style={styles.seeAll}>Full Analysis</Text>
+            </TouchableOpacity>
+          </View>
           <GlassCard style={styles.pulseCard}>
-            <IdentityPulseBar 
-              label="Discipline" 
-              value={(journeySummary?.discipline_score || 30) / 100} 
-              color={COLORS.identity.discipline} 
-            />
-            <IdentityPulseBar 
-              label="Awareness" 
-              value={0.8} 
-              color={COLORS.identity.awareness} 
-            />
-            <IdentityPulseBar 
-              label="Avoidance" 
-              value={patterns?.burnout_score || 0.2} 
-              color={COLORS.identity.avoidance} 
-            />
+            <View style={styles.journeyHeader}>
+              <View>
+                <Text style={styles.archetypeTitle}>{userState.archetype || 'Seeker'}</Text>
+                <Text style={styles.rankTitle}>{userState.identity_level || 'Beginner'}</Text>
+              </View>
+              <View style={styles.xpBox}>
+                <Text style={styles.xpText}>{xp} / {level * 500} XP</Text>
+              </View>
+            </View>
+            
+            <View style={styles.progressBarBg}>
+              <MotiView 
+                from={{ width: 0 }}
+                animate={{ width: `${(xp / (level * 500)) * 100}%` }}
+                style={styles.progressBarFill}
+              />
+            </View>
+
+            <Text style={styles.archetypeSubtext}>
+              {userState.archetype === 'monk' ? 'Mastering the art of internal stillness and cognitive clarity.' : 
+               userState.archetype === 'warrior' ? 'Forging a path of relentless discipline and physiological peak.' : 
+               'Developing the foundations of behavioral mastery.'}
+            </Text>
+
+            <View style={styles.pulseGrid}>
+              <IdentityPulseBar 
+                label="Discipline" 
+                value={(journeySummary?.discipline_score || 30) / 100} 
+                color={COLORS.identity.discipline} 
+              />
+              <IdentityPulseBar 
+                label="Awareness" 
+                value={0.8} 
+                color={COLORS.identity.awareness} 
+              />
+            </View>
           </GlassCard>
         </View>
 
+        {/* Routines & Journeys Preview */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>ACTIVE JOURNEYS</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.journeyScroll}>
+            <GlassCard style={styles.journeyMiniCard}>
+              <View style={styles.miniIconBg}><Sparkles size={16} color={COLORS.primary}/></View>
+              <Text style={styles.miniTitle}>Morning Ritual</Text>
+              <Text style={styles.miniStatus}>3/4 Complete</Text>
+            </GlassCard>
+            <GlassCard style={styles.journeyMiniCard}>
+              <View style={[styles.miniIconBg, { backgroundColor: 'rgba(139, 164, 208, 0.1)' }]}><Brain size={16} color="#8BA4D0"/></View>
+              <Text style={styles.miniTitle}>Deep Focus</Text>
+              <Text style={styles.miniStatus}>Locked</Text>
+            </GlassCard>
+          </ScrollView>
+        </View>
       </ScrollView>
+
+      {/* Quick Add FAB */}
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => setShowAddModal(true)}
+      >
+        <Plus size={24} color="#FFF" />
+      </TouchableOpacity>
+
+      {/* Add Habit Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <View style={styles.modalOverlay}>
+            <MotiView 
+              from={{ opacity: 0, scale: 0.9, translateY: 20 }}
+              animate={{ opacity: 1, scale: 1, translateY: 0 }}
+              exit={{ opacity: 0, scale: 0.9, translateY: 20 }}
+              style={styles.modalCard}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>New Action</Text>
+                <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                  <X size={20} color={COLORS.textDim} />
+                </TouchableOpacity>
+              </View>
+
+              <TextInput 
+                placeholder="What is the behavior?"
+                placeholderTextColor={COLORS.textDim}
+                style={styles.modalInput}
+                value={newHabitName}
+                onChangeText={setNewHabitName}
+                autoFocus
+              />
+
+              <View style={styles.modalSubSection}>
+                <Text style={styles.modalLabel}>IMPLEMENTATION INTENTION</Text>
+                <TextInput 
+                  placeholder="If [situation]..."
+                  placeholderTextColor={COLORS.textDim}
+                  style={styles.modalInputSmall}
+                  value={conditionText}
+                  onChangeText={setConditionText}
+                />
+              </View>
+
+              <View style={styles.modalRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalLabel}>FREQUENCY (DAYS/WK)</Text>
+                  <TextInput 
+                    placeholder="7"
+                    keyboardType="numeric"
+                    placeholderTextColor={COLORS.textDim}
+                    style={styles.modalInputSmall}
+                    value={freq}
+                    onChangeText={setFreq}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalLabel}>MASTERY TARGET (STREAK)</Text>
+                  <TextInput 
+                    placeholder="30"
+                    keyboardType="numeric"
+                    placeholderTextColor={COLORS.textDim}
+                    style={styles.modalInputSmall}
+                    value={streakTarget}
+                    onChangeText={setStreakTarget}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.modalSubSection}>
+                <Text style={styles.modalLabel}>LIFE DOMAIN</Text>
+                <View style={styles.difficultyPicker}>
+                  {['physical', 'mental', 'work', 'social', 'sleep'].map((d) => (
+                    <TouchableOpacity 
+                      key={d}
+                      onPress={() => setDomain(d)}
+                      style={[styles.diffBtn, domain === d && styles.diffBtnActive]}
+                    >
+                      <Text style={[styles.diffText, domain === d && styles.diffTextActive]}>
+                        {d === 'physical' ? '💪' : d === 'mental' ? '🧠' : d === 'work' ? '💼' : d === 'social' ? '💞' : '😴'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.modalSubSection}>
+                <Text style={styles.modalLabel}>DIFFICULTY</Text>
+                <View style={styles.difficultyPicker}>
+                  {['easy', 'medium', 'hard'].map((d) => (
+                    <TouchableOpacity 
+                      key={d}
+                      onPress={() => setDifficulty(d)}
+                      style={[styles.diffBtn, difficulty === d && styles.diffBtnActive]}
+                    >
+                      <Text style={[styles.diffText, difficulty === d && styles.diffTextActive]}>{d}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity 
+                style={styles.saveBtn}
+                onPress={handleCreateHabit}
+              >
+                <Text style={styles.saveBtnText}>Activate Anchor</Text>
+              </TouchableOpacity>
+            </MotiView>
+          </View>
+        )}
+      </AnimatePresence>
     </SafeAreaView>
   );
 }
@@ -319,20 +515,159 @@ const styles = StyleSheet.create({
   emptyCta: { ...TYPOGRAPHY.label, color: COLORS.primary, fontSize: 12, marginTop: 4 },
 
   statsSection: { marginBottom: SPACING[8] },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: SPACING[3] 
+  },
+  seeAll: { ...TYPOGRAPHY.label, color: COLORS.primary, fontSize: 10 },
   pulseCard: {
     padding: SPACING[6],
     borderRadius: RADIUS.xl,
-    gap: SPACING[6]
+    gap: SPACING[6],
+    backgroundColor: COLORS.surface
   },
+  journeyHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-end',
+    marginBottom: SPACING[2]
+  },
+  archetypeTitle: { ...TYPOGRAPHY.h2, color: COLORS.text, fontSize: 22, letterSpacing: -0.5 },
+  rankTitle: { ...TYPOGRAPHY.caption, color: COLORS.primary, fontSize: 12, fontWeight: '700', letterSpacing: 1 },
+  archetypeSubtext: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, fontSize: 13, marginTop: SPACING[2], lineHeight: 20 },
+  xpBox: { alignItems: 'flex-end' },
+  xpText: { ...TYPOGRAPHY.caption, color: COLORS.textDim, fontSize: 10 },
+  progressBarBg: { 
+    height: 8, 
+    backgroundColor: '#F3F4F6', 
+    borderRadius: 4, 
+    overflow: 'hidden',
+    marginBottom: SPACING[4]
+  },
+  progressBarFill: { 
+    height: '100%', 
+    backgroundColor: COLORS.primary,
+    borderRadius: 4
+  },
+  pulseGrid: { gap: SPACING[4] },
   pulseRow: { gap: SPACING[2] },
   pulseHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pulseLabel: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary, fontSize: 13 },
-  pulsePercentage: { ...TYPOGRAPHY.caption, color: COLORS.text, fontWeight: '600' },
+  pulseLabel: { ...TYPOGRAPHY.caption, color: COLORS.textSecondary, fontSize: 12 },
+  pulsePercentage: { ...TYPOGRAPHY.caption, color: COLORS.text, fontWeight: '600', fontSize: 12 },
   pulseBarBg: { 
-    height: 6, 
-    backgroundColor: 'rgba(255,255,255,0.03)', 
+    height: 4, 
+    backgroundColor: 'rgba(0,0,0,0.03)', 
     borderRadius: RADIUS.full, 
     overflow: 'hidden' 
   },
   pulseBarFill: { height: '100%', borderRadius: RADIUS.full },
+
+  journeyScroll: { paddingLeft: 0, marginTop: SPACING[2] },
+  journeyMiniCard: {
+    width: 140,
+    padding: SPACING[4],
+    borderRadius: RADIUS.lg,
+    marginRight: SPACING[4],
+    backgroundColor: COLORS.surface,
+    gap: 8
+  },
+  miniIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(109, 186, 157, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  miniTitle: { ...TYPOGRAPHY.label, fontSize: 12, color: COLORS.text },
+  miniStatus: { ...TYPOGRAPHY.caption, fontSize: 10, color: COLORS.textDim },
+
+  fab: {
+    position: 'absolute',
+    bottom: 100,
+    right: SPACING[6],
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.card,
+    elevation: 8
+  },
+
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING[6],
+    zIndex: 1000
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING[6],
+    ...SHADOWS.card
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING[6]
+  },
+  modalTitle: { ...TYPOGRAPHY.h2, fontSize: 20, color: COLORS.text },
+  modalInput: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: RADIUS.lg,
+    padding: SPACING[4],
+    color: COLORS.text,
+    fontSize: 16,
+    marginBottom: SPACING[4],
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  modalSubSection: { marginBottom: SPACING[4] },
+  modalLabel: { ...TYPOGRAPHY.label, color: COLORS.textDim, fontSize: 10, marginBottom: 8, letterSpacing: 1 },
+  modalInputSmall: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: RADIUS.md,
+    padding: SPACING[3],
+    color: COLORS.text,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  modalRow: { flexDirection: 'row', gap: SPACING[4], marginBottom: SPACING[6] },
+  difficultyPicker: {
+    flexDirection: 'row',
+    gap: SPACING[3],
+  },
+  diffBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center'
+  },
+  diffBtnActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary
+  },
+  diffText: { ...TYPOGRAPHY.label, color: COLORS.textDim, fontSize: 12 },
+  diffTextActive: { color: '#FFF' },
+  saveBtn: {
+    backgroundColor: COLORS.primary,
+    height: 54,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING[4],
+    ...SHADOWS.card
+  },
+  saveBtnText: { ...TYPOGRAPHY.label, color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

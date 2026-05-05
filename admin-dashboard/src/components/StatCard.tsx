@@ -10,29 +10,51 @@ export default function StatCard({ title, value, icon }: StatCardProps) {
   return (
     <div style={{
       flex: 1,
-      background: "rgba(255, 255, 255, 0.03)",
-      backdropFilter: "blur(10px)",
-      padding: "24px",
-      borderRadius: "20px",
-      border: "1px solid rgba(255, 255, 255, 0.05)",
+      background: "#ffffff",
+      padding: "28px",
+      borderRadius: "24px",
+      border: "1px solid #E5E7EB",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)"
+      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.03)",
+      position: "relative",
+      overflow: "hidden"
     }}>
-      <div>
-        <p style={{ color: "#9ca3af", fontSize: "12px", fontWeight: "600", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.1em" }}>{title}</p>
-        <h2 style={{ fontSize: "32px", margin: 0, fontWeight: "700", color: "#ffffff" }}>{value}</h2>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <p style={{ 
+          color: "#6B7280", 
+          fontSize: "11px", 
+          fontWeight: "700", 
+          marginBottom: 10, 
+          textTransform: "uppercase", 
+          letterSpacing: "0.15em" 
+        }}>
+          {title}
+        </p>
+        <h2 style={{ 
+          fontSize: "36px", 
+          margin: 0, 
+          fontWeight: "800", 
+          color: "#1A1F2E",
+          letterSpacing: "-0.02em"
+        }}>
+          {value}
+        </h2>
       </div>
+      
       <div style={{ 
-        width: 48, 
-        height: 48, 
-        borderRadius: "16px", 
-        background: "rgba(124, 140, 255, 0.1)", 
+        width: 56, 
+        height: 56, 
+        borderRadius: "18px", 
+        background: "#F9FAFB", 
         display: "flex", 
         alignItems: "center", 
         justifyContent: "center",
-        border: "1px solid rgba(124, 140, 255, 0.2)"
+        border: "1px solid #E5E7EB",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.02)",
+        position: "relative",
+        zIndex: 1
       }}>
         {icon}
       </div>

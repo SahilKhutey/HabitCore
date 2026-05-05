@@ -47,7 +47,13 @@ class UserGuardian:
         if not last_open:
             score += 50
         else:
-            days_inactive = (datetime.now(timezone.utc) - last_open.created_at).days
+            # Ensure comparison is safe (Sqlite returns naive datetimes)
+            now = datetime.now(timezone.utc)
+            last_at = last_open.created_at
+            if last_at.tzinfo is None:
+                now = now.replace(tzinfo=None)
+            
+            days_inactive = (now - last_at).days
             if days_inactive >= 3:
                 score += 40
             elif days_inactive >= 1:

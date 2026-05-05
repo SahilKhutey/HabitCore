@@ -15,7 +15,56 @@ from app.services.reward_service import reward_service
 from app.services.analytics_service import AnalyticsService
 from app.services.behavioral_insight_engine.service import BehavioralInsightService
 
+ROUTINE_PACKS = {
+    "morning_ritual": {
+        "title": "Morning Ritual",
+        "habits": [
+            {"name": "Morning Sunlight", "time": "07:00", "difficulty": "easy", "domain": "physical"},
+            {"name": "Morning Meditation", "time": "07:30", "difficulty": "medium", "domain": "mental"},
+            {"name": "Hydration (1L)", "time": "08:00", "difficulty": "easy", "domain": "physical"},
+        ]
+    },
+    "deep_focus": {
+        "title": "Deep Focus",
+        "habits": [
+            {"name": "Phone Away", "time": "09:00", "difficulty": "medium", "domain": "work"},
+            {"name": "Pomodoro Session", "time": "10:00", "difficulty": "hard", "domain": "work"},
+            {"name": "Project Review", "time": "11:30", "difficulty": "medium", "domain": "work"},
+        ]
+    }
+}
+
 router = APIRouter()
+
+@router.get("/routines/packs")
+def get_routine_packs(user=Depends(auth_required)):
+    return ROUTINE_PACKS
+
+@router.post("/routines/install/{pack_id}")
+def install_routine_pack(pack_id: str, user=Depends(auth_required), db: Session = Depends(get_db)):
+    if pack_id not in ROUTINE_PACKS:
+        raise HTTPException(status_code=404, detail="Pack not found")
+    
+    pack = ROUTINE_PACKS[pack_id]
+    installed = 0
+    for h_data in pack["habits"]:
+        # Check if already exists
+        exists = db.query(Habit).filter(Habit.user_id == user.id, Habit.name == h_data["name"]).first()
+        if not exists:
+            habit = Habit(
+                user_id=user.id,
+                name=h_data["name"],
+                time=h_data["time"],
+                difficulty=h_data["difficulty"],
+                domain=h_data["domain"],
+                frequency=7
+            )
+            db.add(habit)
+            installed += 1
+    
+    db.commit()
+    return {"status": "success", "installed_count": installed, "message": f"{pack['title']} installed."}
+
 
 @router.post("/seed")
 def seed_habits(user=Depends(auth_required), db: Session = Depends(get_db)):
@@ -50,6 +99,11 @@ def reset_burnout(user=Depends(auth_required), db: Session = Depends(get_db)):
 class HabitCreate(BaseModel):
     name: str
     time: Optional[str] = None
+    difficulty: Optional[str] = "medium"
+    frequency: Optional[int] = 7
+    condition: Optional[str] = None
+    streak_target: Optional[int] = 30
+    domain: Optional[str] = None
 
 class HabitUpdate(BaseModel):
     name: Optional[str] = None
@@ -66,10 +120,19 @@ class HabitCompletionRequest(BaseModel):
 @router.post("/create")
 def create_habit(data: HabitCreate, user=Depends(auth_required), db: Session = Depends(get_db)):
     habits_count = db.query(Habit).filter(Habit.user_id == user.id).count()
-    if habits_count >= 3 and not user.is_premium:
+    if habits_count >= 10 and not user.is_premium: # Increased limit for demo
         raise HTTPException(status_code=403, detail="Upgrade to premium")
 
-    habit = Habit(user_id=user.id, name=data.name, time=data.time)
+    habit = Habit(
+        user_id=user.id, 
+        name=data.name, 
+        time=data.time,
+        difficulty=data.difficulty,
+        frequency=data.frequency,
+        condition=data.condition,
+        streak_target=data.streak_target,
+        domain=data.domain
+    )
     db.add(habit)
     db.commit()
     db.refresh(habit)
@@ -303,7 +366,10 @@ def get_activity_feed(limit: int = 10, user=Depends(auth_required), db: Session 
     for log, habit in logs:
         completed_at = log.completed_at or datetime.now(timezone.utc)
         # Compute how long ago
-        delta = datetime.now(timezone.utc) - completed_at
+        now = datetime.now(timezone.utc)
+        if completed_at.tzinfo is None:
+            now = now.replace(tzinfo=None)
+        delta = now - completed_at
         if delta.seconds < 3600:
             time_ago = f"{delta.seconds // 60}m ago"
         elif delta.days == 0:

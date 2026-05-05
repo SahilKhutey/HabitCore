@@ -16,6 +16,10 @@ class AvatarUpdateRequest(BaseModel):
 class PurchaseRequest(BaseModel):
     item_id: str
 
+class EquipRequest(BaseModel):
+    item_type: str
+    item_value: Optional[str] = None
+
 @router.get("/")
 async def get_avatar(db: Session = Depends(get_db), current_user = Depends(auth_required)):
     """Get user avatar data"""
@@ -90,6 +94,24 @@ async def purchase_item(request: PurchaseRequest, db: Session = Depends(get_db),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Purchase failed: {str(e)}")
+
+@router.post("/equip")
+async def equip_item(request: EquipRequest, db: Session = Depends(get_db), current_user = Depends(auth_required)):
+    """Equip or unequip an appearance item"""
+    try:
+        from app.models.avatar_models import UserAvatar
+        avatar = db.query(UserAvatar).filter(UserAvatar.user_id == current_user.id).first()
+        if not avatar: raise HTTPException(404, "Avatar not found")
+        
+        if request.item_type == "skin": avatar.skin = request.item_value
+        elif request.item_type == "outfit": avatar.outfit = request.item_value
+        elif request.item_type == "aura": avatar.aura = request.item_value
+        elif request.item_type == "accessory": avatar.accessory = request.item_value
+        
+        db.commit()
+        return {"success": True, "message": f"{request.item_type} updated."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Equip failed: {str(e)}")
 
 @router.get("/shop")
 async def get_shop_items(db: Session = Depends(get_db), current_user = Depends(auth_required)):

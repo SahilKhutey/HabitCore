@@ -207,7 +207,11 @@ class HabitEngine:
             return None
 
         if habit.last_adjusted_at:
-            days_since = (datetime.now(timezone.utc) - habit.last_adjusted_at).days
+            now = datetime.now(timezone.utc)
+            last_at = habit.last_adjusted_at
+            if last_at.tzinfo is None:
+                now = now.replace(tzinfo=None)
+            days_since = (now - last_at).days
             if days_since < 3:
                 return None
 

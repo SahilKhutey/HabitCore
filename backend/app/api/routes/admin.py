@@ -1,12 +1,56 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, text
+from sqlalchemy import func, text, desc
 from app.api.deps import get_db, auth_required
 from app.models.user import User
 from app.models.analytics import AnalyticsEvent
+from app.models.habit import Habit
 from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
+
+@router.get("/stats")
+def get_stats(db: Session = Depends(get_db)):
+    total_users = db.query(func.count(User.id)).scalar()
+    premium_users = db.query(func.count(User.id)).filter(User.is_premium == True).scalar()
+    total_coins = db.query(func.sum(User.coins)).scalar() or 0
+    
+    # Growth calculation (last 24h vs previous 24h)
+    now = datetime.now(timezone.utc)
+    day_ago = now - timedelta(days=1)
+    two_days_ago = now - timedelta(days=2)
+    
+    new_users_last_24h = db.query(func.count(User.id)).filter(User.created_at >= day_ago).scalar()
+    new_users_prev_24h = db.query(func.count(User.id)).filter(User.created_at >= two_days_ago, User.created_at < day_ago).scalar()
+    
+    growth = 0
+    if new_users_prev_24h > 0:
+        growth = ((new_users_last_24h - new_users_prev_24h) / new_users_prev_24h) * 100
+    
+    return {
+        "total_users": total_users,
+        "premium_rate": round((premium_users / total_users * 100), 1) if total_users > 0 else 0,
+        "system_treasury": total_coins,
+        "growth_velocity": f"{'+' if growth >= 0 else ''}{growth:.1f}%"
+    }
+
+@router.get("/analytics/archetype-distribution")
+def get_archetype_distribution(db: Session = Depends(get_db)):
+    results = db.query(
+        User.archetype,
+        func.count(User.id).label('count')
+    ).group_by(User.archetype).all()
+    
+    return [{"archetype": r.archetype or "unknown", "count": r.count} for r in results]
+
+@router.get("/analytics/top-habits")
+def get_top_habits(db: Session = Depends(get_db)):
+    results = db.query(
+        Habit.name,
+        func.count(Habit.id).label('popularity')
+    ).group_by(Habit.name).order_by(desc('popularity')).limit(5).all()
+    
+    return [{"name": r.name, "count": r.popularity} for r in results]
 
 @router.get("/analytics/dau")
 def get_dau(db: Session = Depends(get_db)):
@@ -72,11 +116,22 @@ def get_retention_cohorts(db: Session = Depends(get_db)):
 
 @router.get("/churn-risk-users")
 def get_churn_risk_users(db: Session = Depends(get_db)):
-    # Simple heuristic: inactive for 3+ days
+    # Identify users inactive for 3+ days based on latest analytics event
     threshold = datetime.now(timezone.utc) - timedelta(days=3)
-
-    users = db.query(User).filter(User.last_active_hour < threshold.hour).all() # This is a placeholder logic
-    return {"at_risk_count": len(users)}
+    
+    latest_events = db.query(
+        AnalyticsEvent.user_id,
+        func.max(AnalyticsEvent.created_at).label("latest_activity")
+    ).group_by(AnalyticsEvent.user_id).subquery()
+    
+    at_risk_count = db.query(func.count(User.id)).outerjoin(
+        latest_events, User.id == latest_events.c.user_id
+    ).filter(
+        (latest_events.c.latest_activity < threshold) | 
+        ((latest_events.c.latest_activity == None) & (User.created_at < threshold))
+    ).scalar()
+    
+    return {"at_risk_count": at_risk_count or 0}
 
 @router.post("/ban/{user_id}")
 def ban_user(user_id: str, db: Session = Depends(get_db)):

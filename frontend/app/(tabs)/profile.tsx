@@ -124,6 +124,35 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </GlassCard>
 
+        <Text style={[styles.sectionTitle, { marginTop: SPACING[6] }]}>INTELLIGENCE DEBUG</Text>
+        <GlassCard style={styles.settingsCard}>
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={async () => {
+              await api('/habits/seed', 'POST', null, token!);
+              fetchData();
+              triggerHaptic('success');
+            }}
+          >
+            <Zap size={18} color={COLORS.primary} />
+            <Text style={styles.settingLabel}>Seed Demo Architecture</Text>
+            <ChevronRight size={16} color={COLORS.border} />
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={async () => {
+              await api('/identity/shift', 'POST', { archetype: 'monk', level: 12 }, token!);
+              fetchData();
+              triggerHaptic('success');
+            }}
+          >
+            <Moon size={18} color={COLORS.warning} />
+            <Text style={styles.settingLabel}>Shift to Monk Identity</Text>
+            <ChevronRight size={16} color={COLORS.border} />
+          </TouchableOpacity>
+        </GlassCard>
+
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <LogOut size={18} color={COLORS.danger} />
           <Text style={styles.logoutText}>Sign Out</Text>

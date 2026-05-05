@@ -174,48 +174,11 @@ def classify_habit_domain(name: str) -> str:
 
 @router.get("/life-domains")
 def get_life_domains(user=Depends(auth_required), db: Session = Depends(get_db)):
-    """
-    Computes life domain scores (0-100) from habit completions + checkin data.
-    Domains: physical, mental, work, social, sleep
-    """
-    from app.models.habit import Habit
-    from app.models.habit_log import HabitLog
-    from sqlalchemy import func
-    from datetime import date, timedelta
-
-    # Last 7 days
-    today = date.today()
-    week_ago = today - timedelta(days=7)
-
-    # Get all user habits with completion counts this week
-    habits = db.query(Habit).filter(Habit.user_id == user.id).all()
-    logs_this_week = db.query(
-        HabitLog.habit_id,
-        func.count(HabitLog.id).label("count")
-    ).join(Habit, Habit.id == HabitLog.habit_id).filter(
-        Habit.user_id == user.id,
-        HabitLog.date >= week_ago,
-    ).group_by(HabitLog.habit_id).all()
-
-    log_map = {row.habit_id: row.count for row in logs_this_week}
+    from app.services.core.psychological_engine import PsychologicalEngine
+    engine = PsychologicalEngine(db)
+    scores = engine.compute_domain_scores(user.id)
     
-    # Score per domain: completions/7 * 100 (max 100)
-    domain_totals = {d: {"completed": 0, "total_possible": 0, "habits": []} for d in DOMAIN_KEYWORDS}
-    
-    for habit in habits:
-        domain = classify_habit_domain(habit.name)
-        if domain in domain_totals:
-            completions = log_map.get(habit.id, 0)
-            domain_totals[domain]["completed"] += completions
-            domain_totals[domain]["total_possible"] += 7
-            domain_totals[domain]["habits"].append(habit.name)
-
-    # Get latest checkin for sleep and mood boost
-    latest = db.query(DailyCheckin).filter(
-        DailyCheckin.user_id == user.id,
-    ).order_by(DailyCheckin.date.desc()).first()
-
-    domains = []
+    # Format for frontend expectations (Life tab)
     domain_meta = {
         "physical": {"label": "Physical", "emoji": "💪", "color": "#33ffd6"},
         "mental":   {"label": "Mental",   "emoji": "🧠", "color": "#a78bfa"},
@@ -223,38 +186,27 @@ def get_life_domains(user=Depends(auth_required), db: Session = Depends(get_db))
         "social":   {"label": "Social",   "emoji": "💞", "color": "#f472b6"},
         "sleep":    {"label": "Sleep",    "emoji": "😴", "color": "#fbbf24"},
     }
-
-    for domain, meta in domain_meta.items():
-        data = domain_totals[domain]
-        if data["total_possible"] > 0:
-            score = round((data["completed"] / data["total_possible"]) * 100)
-        elif domain == "sleep" and latest:
-            score = round((latest.sleep_quality / 5) * 100)
-        else:
-            score = 0
-
-        # Sleep domain boost from checkin
-        if domain == "sleep" and latest and latest.sleep_quality:
-            score = max(score, round((latest.sleep_quality / 5) * 100))
-
+    
+    domains = []
+    for d, score in scores.items():
+        meta = domain_meta.get(d, {"label": d.capitalize(), "emoji": "⚡", "color": "#ffffff"})
         domains.append({
-            "domain": domain,
+            "domain": d,
             **meta,
-            "score": min(100, score),
-            "habits": data["habits"],
-            "completions_this_week": data["completed"],
+            "score": score
         })
-
-    # Overall life score
-    overall = round(sum(d["score"] for d in domains) / len(domains))
-
+        
     return {
         "success": True,
         "domains": domains,
-        "overall_score": overall,
-        "checkin_mood": latest.mood if latest else None,
-        "checkin_date": latest.date.isoformat() if latest else None,
+        "overall_score": round(sum(scores.values()) / len(scores)) if scores else 0
     }
+
+@router.get("/identity-insights")
+def get_identity_insights(user=Depends(auth_required), db: Session = Depends(get_db)):
+    from app.services.core.psychological_engine import PsychologicalEngine
+    engine = PsychologicalEngine(db)
+    return engine.get_identity_insights(user.id)
 
 
 @router.get("/checkin/history")

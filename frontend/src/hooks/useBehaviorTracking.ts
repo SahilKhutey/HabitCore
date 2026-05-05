@@ -54,7 +54,7 @@ export const useBehaviorTracking = () => {
   const loadPatterns = async () => {
     if (!token) return;
     try {
-      const response = await api("/psychological/behavior/patterns", "GET", null, token);
+      const response: any = await api("/psychological/behavior/patterns", "GET", null, token);
       setPatterns(response.patterns || {});
       setBurnoutScore(response.burnout_score || 0);
     } catch (error) {

@@ -5,7 +5,8 @@ import {
   StyleSheet, 
   ScrollView, 
   SafeAreaView, 
-  RefreshControl 
+  RefreshControl,
+  TouchableOpacity
 } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY, RADIUS } from '../../src/theme/theme';
 import { api } from '../../src/api/client';
@@ -17,11 +18,15 @@ import {
   Moon, 
   Sun, 
   Coffee,
-  Activity
+  Activity,
+  ChevronRight
 } from 'lucide-react-native';
 import { MotiView } from 'moti';
+import { useRouter } from 'expo-router';
+import { triggerHaptic } from '../../src/utils/animationManager';
 
 export default function WellnessScreen() {
+  const router = useRouter();
   const { token } = useUserStore();
   const [refreshing, setRefreshing] = useState(false);
   const [domains, setDomains] = useState<any[]>([]);
@@ -48,7 +53,7 @@ export default function WellnessScreen() {
     setRefreshing(false);
   };
 
-  const DomainCard = ({ domain, score, emoji, color, label }: any) => (
+  const DomainCard = ({ domain, score, emoji, color, label, habits }: any) => (
     <GlassCard style={styles.domainCard}>
       <View style={styles.domainHeader}>
         <Text style={styles.domainEmoji}>{emoji}</Text>
@@ -62,6 +67,13 @@ export default function WellnessScreen() {
           style={[styles.domainBarFill, { backgroundColor: color }]} 
         />
       </View>
+      {habits && habits.length > 0 && (
+        <View style={styles.habitsList}>
+          {habits.map((h: string, idx: number) => (
+            <Text key={idx} style={styles.habitItem}>• {h}</Text>
+          ))}
+        </View>
+      )}
     </GlassCard>
   );
 
@@ -77,10 +89,33 @@ export default function WellnessScreen() {
             <Text style={styles.title}>Wellness</Text>
             <Text style={styles.subtitle}>Holistic behavioral balance.</Text>
           </View>
-          <View style={styles.overallBox}>
+          <TouchableOpacity style={styles.overallBox} onPress={onRefresh}>
              <Text style={styles.overallLabel}>OVERALL</Text>
              <Text style={styles.overallVal}>{overall}%</Text>
-          </View>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.checkinCTA}
+          onPress={() => router.push('/reflection' as any)}
+        >
+          <GlassCard style={styles.checkinCTAInner}>
+            <View style={styles.checkinIconBox}>
+              <Heart color={COLORS.primary} size={24} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.checkinTitle}>Daily Alignment Check-in</Text>
+              <Text style={styles.checkinSub}>Update your mood, sleep, and energy</Text>
+            </View>
+            <ChevronRight color={COLORS.textDim} size={20} />
+          </GlassCard>
+        </TouchableOpacity>
+
+        <View style={styles.infoSectionTop}>
+          <Text style={styles.infoTextTop}>
+            Scores are calculated based on your habit completions over the last 7 days and your daily check-in responses. 
+            You can explicitly assign habits to domains in the Studio or Today tab.
+          </Text>
         </View>
 
         <View style={styles.domainGrid}>
@@ -139,10 +174,20 @@ const styles = StyleSheet.create({
   domainScore: { ...TYPOGRAPHY.label, fontSize: 14, fontWeight: '700' },
   domainBarBg: { height: 6, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: RADIUS.full, overflow: 'hidden' },
   domainBarFill: { height: '100%', borderRadius: RADIUS.full },
+  habitsList: { marginTop: SPACING[4], gap: 4 },
+  habitItem: { ...TYPOGRAPHY.caption, color: COLORS.textDim, fontSize: 12 },
   
+  infoSectionTop: { marginBottom: SPACING[8], padding: SPACING[2] },
+  infoTextTop: { ...TYPOGRAPHY.body, color: COLORS.textDim, fontSize: 13, lineHeight: 20, fontStyle: 'italic' },
+
   infoSection: { marginTop: SPACING[10] },
   sectionTitle: { ...TYPOGRAPHY.label, color: COLORS.textDim, fontSize: 10, letterSpacing: 2, marginBottom: SPACING[4] },
   infoCard: { padding: SPACING[6], borderRadius: RADIUS.xl, flexDirection: 'row', gap: SPACING[4], backgroundColor: COLORS.surfaceLight },
   infoText: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, flex: 1, fontSize: 14, lineHeight: 22 },
-  emptyText: { ...TYPOGRAPHY.body, color: COLORS.textDim, textAlign: 'center', marginTop: 40 }
+  emptyText: { ...TYPOGRAPHY.body, color: COLORS.textDim, textAlign: 'center', marginTop: 40 },
+  checkinCTA: { marginBottom: SPACING[6] },
+  checkinCTAInner: { flexDirection: 'row', alignItems: 'center', padding: SPACING[5], borderRadius: RADIUS.xl, gap: SPACING[4], backgroundColor: COLORS.surface },
+  checkinIconBox: { width: 48, height: 48, borderRadius: RADIUS.lg, backgroundColor: 'rgba(124, 140, 255, 0.1)', alignItems: 'center', justifyContent: 'center' },
+  checkinTitle: { ...TYPOGRAPHY.h3, color: COLORS.text },
+  checkinSub: { ...TYPOGRAPHY.caption, color: COLORS.textDim, marginTop: 2 }
 });

@@ -10,5 +10,5 @@ class HabitLog(Base):
     habit_id = Column(String)
     user_id = Column(String)
     date = Column(Date, default=date.today)
-    completed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed = Column(Boolean, default=True)

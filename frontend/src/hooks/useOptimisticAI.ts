@@ -17,7 +17,7 @@ export const useOptimisticAI = () => {
     setLoading(true);
 
     try {
-      const response = await api("/psychological/ai-coach/advice", "POST", userData, token!);
+      const response: any = await api("/psychological/ai-coach/advice", "POST", userData, token!);
       setAdvice(response.advice);
       return response.advice;
     } catch (error) {

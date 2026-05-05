@@ -9,9 +9,11 @@ def score_nudge(pattern: Dict[str, Any], context: Dict[str, Any]) -> float:
     Calculates a relevance score (0.0 - 1.0) for a potential nudge.
     """
     score = 0.0
+    p_type = pattern.get("pattern_type") or pattern.get("event_type")
     
     # 1. Pattern Confidence (40% weight)
-    score += pattern.get("confidence", 0.0) * 0.4
+    confidence = pattern.get("confidence") or pattern.get("metadata", {}).get("confidence", 0.0)
+    score += confidence * 0.4
     
     # 2. User State Adaptation (20% weight)
     if context.get("energy", 5) < 4:
@@ -29,12 +31,13 @@ def score_nudge(pattern: Dict[str, Any], context: Dict[str, Any]) -> float:
     journey_day = context.get("journey_day", 0)
     p_type = pattern.get("pattern_type") or pattern.get("event_type")
     
-    if journey_day == 0 and p_type == "journey_hook_day_0":
-        score += 0.3 # Guarantee Day 0 hook
-    elif 3 <= journey_day <= 7 and p_type == "journey_awareness_day_3":
-        score += 0.3
-        
-    return min(score, 1.0)
+    # 5. Event Type Boost
+    if p_type == "habit_completed":
+        score += 0.2
+    elif p_type == "burnout_risk":
+        score += 0.4
+
+    return min(max(score, 0.0), 1.0)
 
 def should_skip_nudge(user_id: str, last_nudge_at: Optional[datetime]) -> bool:
     """

@@ -18,17 +18,20 @@ export default function IdentityScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [journeySummary, setJourneySummary] = useState<any>(null);
   const [patterns, setPatterns] = useState<any>(null);
+  const [identityInsights, setIdentityInsights] = useState<any>(null);
   const { token } = useUserStore();
 
-  const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const [journey, patternRes] = await Promise.all([
+      const [journey, patternRes, insightsRes] = await Promise.all([
         api('/identity/summary', 'GET', null, token),
         api('/psychological/behavior/patterns', 'GET', null, token),
+        api('/psychological/identity-insights', 'GET', null, token),
       ]);
       setJourneySummary(journey);
       setPatterns(patternRes);
+      setIdentityInsights(insightsRes);
     } catch (e) { console.error('Intelligence fetch error:', e); }
   }, [token]);
 
@@ -92,14 +95,12 @@ export default function IdentityScreen() {
           </View>
           
           <View style={styles.trendGrid}>
-            <GlassCard style={styles.trendItem}>
-              <Text style={styles.trendVal}>+12%</Text>
-              <Text style={styles.trendLabel}>Awareness</Text>
-            </GlassCard>
-            <GlassCard style={styles.trendItem}>
-              <Text style={styles.trendVal}>-5%</Text>
-              <Text style={styles.trendLabel}>Avoidance</Text>
-            </GlassCard>
+            {(identityInsights?.trends || []).map((trend: any, i: number) => (
+              <GlassCard key={i} style={styles.trendItem}>
+                <Text style={styles.trendVal}>{trend.value}</Text>
+                <Text style={styles.trendLabel}>{trend.label}</Text>
+              </GlassCard>
+            ))}
           </View>
         </View>
 
@@ -112,7 +113,7 @@ export default function IdentityScreen() {
           <GlassCard style={styles.traitCard}>
             <Brain size={24} color={COLORS.primary} style={{ marginBottom: SPACING[4] }} />
             <Text style={styles.traitText}>
-              “Your cognitive load is lowest in the evenings, making it your optimal window for deep reflection.”
+              {identityInsights?.top_trait || "“Analyzing your behavioral patterns to find your core alignment.”"}
             </Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>Verified Pattern</Text>

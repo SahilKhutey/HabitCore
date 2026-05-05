@@ -12,6 +12,7 @@ class UserSession(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_id: str
+    email: str
 
 import time
 from typing import Dict
@@ -85,7 +86,8 @@ class IdentityOrchestrator:
         
         return UserSession(
             access_token=access_token,
-            user_id=str(user.id)
+            user_id=str(user.id),
+            email=user.email
         )
 
     @staticmethod

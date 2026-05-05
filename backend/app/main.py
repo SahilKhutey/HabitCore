@@ -66,11 +66,7 @@ app = FastAPI(lifespan=lifespan)
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8081", "http://localhost:8082", "http://localhost:8083", "http://localhost:8084",
-        "http://localhost:5173", "http://127.0.0.1:8081", "http://127.0.0.1:8082", "http://127.0.0.1:8083",
-        "http://127.0.0.1:8084", "http://127.0.0.1:5173",
-    ],
+    allow_origins=["*"], # Allow all for easier cross-platform development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -114,6 +110,8 @@ app.include_router(intelligence_router, prefix="/intelligence", tags=["behaviora
 app.include_router(intelligence_v2_router, prefix="/intelligence/v2", tags=["behavioral-intelligence-v2"])
 app.include_router(reflection_router, prefix="/reflection", tags=["reflection-engine"])
 app.include_router(identity_dashboard.router, prefix="/identity", tags=["identity-dashboard"])
+from app.api.routes import notifications
+app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

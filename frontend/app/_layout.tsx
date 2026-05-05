@@ -20,12 +20,20 @@ import {
 import 'react-native-reanimated';
 import NudgeToast from '../src/components/NudgeToast';
 
+import { useUserStore } from '../src/store/useUserStore';
+import { useRouter, useSegments } from 'expo-router';
+import { realtimeService } from '../src/services/RealtimeService';
+
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
+  const { token } = useUserStore();
+  const segments = useSegments();
+  const router = useRouter();
+
   const [fontsLoaded, fontError] = useFonts({
     SpaceGrotesk_400Regular,
     SpaceGrotesk_500Medium,
@@ -45,6 +53,24 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  // Auth Redirection & Real-time Connectivity
+  useEffect(() => {
+    if (!fontsLoaded) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+    const inOnboarding = segments[0] === 'onboarding';
+
+    if (!token && !inAuthGroup && !inOnboarding) {
+      router.replace('/auth/login');
+      realtimeService.stop();
+    } else if (token && (inAuthGroup || inOnboarding)) {
+      router.replace('/(tabs)');
+      realtimeService.start(token);
+    } else if (token) {
+      realtimeService.start(token);
+    }
+  }, [token, segments, fontsLoaded]);
 
   if (!fontsLoaded) {
     return null;

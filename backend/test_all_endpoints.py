@@ -33,7 +33,13 @@ print(f'avatar/ => {r7.status_code} - level={avatar["avatar"]["level"]}, coins={
 r8 = requests.get('http://localhost:8000/api/avatar/shop', headers=headers)
 print(f'avatar/shop => {r8.status_code} - {len(r8.json()["items"])} items')
 
-r9 = requests.post('http://localhost:8000/habits/seed', json={}, headers=headers)
-print(f'habits/seed => {r9.status_code} - {r9.json()["status"]}')
+r10 = requests.get('http://localhost:8000/admin/stats', headers=headers)
+print(f'admin/stats => {r10.status_code} - users={r10.json().get("total_users")}')
+
+r11 = requests.get('http://localhost:8000/admin/analytics/archetype-distribution', headers=headers)
+print(f'admin/archetype-distribution => {r11.status_code} - {len(r11.json())} archetypes')
+
+r12 = requests.get('http://localhost:8000/admin/analytics/top-habits', headers=headers)
+print(f'admin/top-habits => {r12.status_code} - {len(r12.json())} habits')
 
 print('=== ALL DONE ===')

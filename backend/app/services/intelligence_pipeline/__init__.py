@@ -82,6 +82,20 @@ class IntelligencePipeline:
         )
         self.db.add(event)
         self.db.flush()
+
+        # Step 1.1: Trigger real-time bridge for Nudge Engine
+        try:
+            from app.services.core.kafka_service import KafkaService
+            KafkaService.send_behavioral_event(
+                user_id=str(user_id),
+                event_type=normalized["type"],
+                value=normalized["value"],
+                metadata=normalized["metadata"]
+            )
+        except Exception as e:
+            # Non-blocking error for pipeline
+            print(f"Warning: Failed to bridge event to Nudge Engine: {e}")
+
         return event
 
     # ── Step 2: Signal Computation ──────────────────────────────────────────

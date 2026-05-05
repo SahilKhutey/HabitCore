@@ -1,25 +1,75 @@
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import ENV from '../config/env';
+import { useUserStore } from '../store/useUserStore';
 
-const API_URL = ENV.API_URL;
+const apiClient = axios.create({
+  baseURL: ENV.API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request Interceptor: Inject JWT Token
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = useUserStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response Interceptor: Unified Error Handling
+apiClient.interceptors.response.use(
+  (response) => response.data,
+  (error: AxiosError) => {
+    const message = (error.response?.data as any)?.detail || error.message || 'Network error';
+    
+    if (error.response?.status === 401) {
+      // Auto-logout on unauthorized
+      useUserStore.getState().resetUser();
+    }
+    
+    console.error(`[API Error] ${error.config?.url}:`, message);
+    return Promise.reject({ message, status: error.response?.status });
+  }
+);
+
+/**
+ * Legacy wrapper for compatibility with existing code
+ */
+export async function api(endpoint: string, method: string = 'GET', body: any = null, token?: string) {
+  const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  try {
+    const config: any = {
+      url,
+      method,
+    };
+    
+    if (body) {
+      config.data = body;
+    }
+    
+    // If token is explicitly passed (legacy), override interceptor
+    if (token) {
+      config.headers = { Authorization: `Bearer ${token}` };
+    }
+    
+    const response = await apiClient(config);
+    return response as any;
+  } catch (error: any) {
+    // Re-throw for specific component handling
+    throw error;
+  }
+}
+
+export default apiClient;
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE";
-
-export const api = async (endpoint: string, method: Method = "GET", body: any = null, token: string | null = null) => {
-  return fetch(`${API_URL}${endpoint}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { "Authorization": `Bearer ${token}` }),
-    },
-    body: body ? JSON.stringify(body) : null,
-  }).then(async res => {
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(data.detail || "API Error");
-    }
-    return data;
-  });
-};
 
 export const login = async (email: string, password: string) => {
   return api("/auth/login", "POST", { email, password });

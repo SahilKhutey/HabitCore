@@ -77,3 +77,17 @@ class ContextManager:
     def is_active(self, user_id: str) -> bool:
         """Checks if the user has been active in the last 15 minutes."""
         return self.r.exists(f"user:{user_id}:state")
+
+    def publish_nudge(self, user_id: str, message: str, nudge_type: str = "reminder"):
+        """Publishes a nudge to the user's specific channel for SSE delivery."""
+        try:
+            channel = f"nudges:{user_id}"
+            data = json.dumps({
+                "message": message,
+                "type": nudge_type,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            self.r.publish(channel, data)
+            logger.info(f"Nudge published to {channel}")
+        except Exception as e:
+            logger.error(f"Failed to publish nudge to {user_id}: {e}")

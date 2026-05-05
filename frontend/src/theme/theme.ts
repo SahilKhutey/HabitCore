@@ -5,30 +5,38 @@
  */
 
 export const COLORS = {
-  // Base Colors
-  background: "#0F1115",
-  surface: "#151821",
-  surfaceLight: "#1C1F2A",
+  // Base Colors - Wellness Light Palette
+  background: "#F8F9FB",
+  surface: "#FFFFFF",
+  surfaceLight: "#F0F2F5",
   
-  text: "#FFFFFF",
-  textSecondary: "#AAB0C0",
-  textDim: "#6B7280",
+  text: "#1A1F2E",
+  textSecondary: "#4B5563",
+  textDim: "#9CA3AF",
   
-  border: "#2A2F3A",
+  border: "#E5E7EB",
   
-  // Accent System
-  primary: "#7C8CFF",
-  primaryGlow: "rgba(124, 140, 255, 0.25)",
+  // Accent System - Calming Sage & Soft Primary
+  primary: "#6DBA9D", // Sage Green / Wellness Teal
+  secondary: "#8BA4D0", // Soft Indigo
+  primaryGlow: "rgba(109, 186, 157, 0.15)",
+  accent: "#8B5CF6", // Purple Accent
+  glassBorder: "rgba(255, 255, 255, 0.1)",
+  glassBg: "rgba(255, 255, 255, 0.05)",
   
   success: "#4ADE80",
   warning: "#FBBF24",
   danger: "#F87171",
+  gold: "#FFD700",
   
-  // Identity Pulse
+  // Gradients
+  primaryGradient: ["#6DBA9D", "#4ADE80"], // Sage to Success
+  
+  // Identity Pulse - Refined Wellness Palette
   identity: {
-    discipline: "#7C8CFF",
-    awareness: "#A78BFA",
-    avoidance: "#F87171",
+    discipline: "#6DBA9D",
+    awareness: "#8BA4D0",
+    avoidance: "#E89B9B",
   }
 };
 

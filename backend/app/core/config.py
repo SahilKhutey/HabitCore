@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     
     # Database
-    DATABASE_URL: str = "sqlite:///./habithero.db"
+    DATABASE_URL: str = "sqlite:///c:/Users/User/Documents/HabitCore/backend/habithero.db"
     
     # Auth
     SECRET_KEY: str = "supersecretkey"  # Change in production

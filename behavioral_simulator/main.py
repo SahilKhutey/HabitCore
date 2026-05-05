@@ -25,14 +25,12 @@ async def main():
     
     args = parser.parse_args()
 
-    kafka_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-    topic = os.getenv("KAFKA_TOPIC", "behavioral_events")
+    api_url = os.getenv("API_URL", "http://localhost:8000")
 
     logger.info(f"Initializing simulator: scenario={args.scenario}, users={args.users}, duration={args.duration}")
 
     generator = EventGenerator(
-        bootstrap_servers=kafka_servers,
-        topic=topic,
+        api_url=api_url,
         user_count=args.users
     )
 

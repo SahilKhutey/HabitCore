@@ -12,7 +12,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const setToken = useUserStore((s) => s.setToken);
+  const { setToken, setUserInfo } = useUserStore();
 
   const handleLogin = async () => {
     try {
@@ -20,9 +20,25 @@ export default function LoginScreen() {
       setError(null);
       const res = await login(email, password);
       setToken(res.access_token);
+      setUserInfo({ email: res.email });
       router.replace('/(tabs)');
     } catch (err: any) {
       setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await login('sim_v2_0@simulator.com', 'sim_password_123');
+      setToken(res.access_token);
+      setUserInfo({ email: res.email });
+      router.replace('/(tabs)');
+    } catch (err: any) {
+      setError('Demo login failed');
     } finally {
       setLoading(false);
     }
@@ -40,7 +56,7 @@ export default function LoginScreen() {
         <GlassCard style={styles.card}>
           <TextInput 
             placeholder="Email" 
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={COLORS.textDim}
             style={styles.input}
             value={email}
             onChangeText={setEmail}
@@ -48,7 +64,7 @@ export default function LoginScreen() {
           />
           <TextInput 
             placeholder="Password" 
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={COLORS.textDim}
             secureTextEntry 
             style={styles.input}
             value={password}
@@ -63,6 +79,14 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>{loading ? 'Loading...' : 'Login'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.demoButton} 
+            onPress={handleDemoLogin}
+            disabled={loading}
+          >
+            <Text style={styles.demoButtonText}>Demo Experience</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -96,42 +120,67 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: 'center',
     marginBottom: SPACING.xl,
+    color: COLORS.textSecondary,
   },
   card: {
     width: '100%',
+    backgroundColor: COLORS.surface,
   },
   input: {
     height: 50,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
     paddingHorizontal: SPACING.md,
     color: COLORS.text,
     marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   button: {
     backgroundColor: COLORS.primary,
     height: 50,
-    borderRadius: 10,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: SPACING.sm,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonText: {
     color: '#FFF',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  demoButton: {
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SPACING.md,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+  },
+  demoButtonText: {
+    color: COLORS.primary,
+    fontSize: 16,
+    fontWeight: '700',
   },
   errorText: {
     color: COLORS.danger,
     marginBottom: SPACING.sm,
     textAlign: 'center',
+    fontWeight: '600',
   },
   linkButton: {
-    marginTop: SPACING.lg,
+    marginTop: SPACING.xl,
     alignItems: 'center',
   },
   linkText: {
-    color: COLORS.primary,
+    color: COLORS.textSecondary,
     fontSize: 14,
+    fontWeight: '500',
   },
 });

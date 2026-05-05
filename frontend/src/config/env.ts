@@ -1,4 +1,15 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
+// In development, we use the local IP address if on mobile, or localhost if on web.
+// This ensures the app can connect to the backend from a real device.
+const getLocalHost = () => {
+  if (Platform.OS === 'web') return 'localhost';
+  
+  // Try to get the host from debugger or debugger address
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(':').shift();
+  return debuggerHost || '127.0.0.1'; // Fallback
+};
 
 const ENV = {
   staging: {
@@ -10,7 +21,7 @@ const ENV = {
     ENV_NAME: "Production",
   },
   development: {
-    API_URL: "http://localhost:8001",
+    API_URL: `http://${getLocalHost()}:8000`, // Backend runs on 8000
     ENV_NAME: "Development",
   },
 };

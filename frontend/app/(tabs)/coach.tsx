@@ -7,7 +7,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   RefreshControl,
-  Dimensions
+  Dimensions,
+  TextInput
 } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY, RADIUS, SHADOWS } from '../../src/theme/theme';
 import { api } from '../../src/api/client';
@@ -35,6 +36,11 @@ export default function CoachScreen() {
   const [patterns, setPatterns] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<any>(null);
   const [challenge, setChallenge] = useState<any>(null);
+  const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState<any[]>([
+    { role: 'assistant', content: 'Cognitive state analyzed. How can I optimize your behavioral trajectory today?' }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!token) return;
@@ -60,6 +66,27 @@ export default function CoachScreen() {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
+    
+    const userMsg = chatInput;
+    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setChatInput('');
+    setIsTyping(true);
+    triggerHaptic('impactLight');
+
+    // Mock AI delay
+    setTimeout(() => {
+      setIsTyping(false);
+      triggerHaptic('impactMedium');
+      let response = "I've logged your input. Based on your current domain scores, I recommend focusing on structural consistency rather than intensity.";
+      if (userMsg.toLowerCase().includes('physical')) response = "Physical domain is at 43%. A 20-minute zone 2 cardio session would restore your baseline without depleting cognitive reserves.";
+      if (userMsg.toLowerCase().includes('mental')) response = "Mental domain is optimal at 86%. This is a high-leverage window for complex problem solving or creative synthesis.";
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+    }, 1500);
   };
 
   const burnout = patterns?.burnout_score ?? 0;
@@ -145,6 +172,47 @@ export default function CoachScreen() {
           </GlassCard>
         </MotiView>
 
+        {/* Chat Section */}
+        <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 400 }}>
+          <Text style={[styles.sectionLabel, { marginTop: SPACING[10] }]}>Direct Intelligence</Text>
+          <GlassCard style={styles.chatCard}>
+            <View style={styles.chatHeader}>
+              <View style={styles.activeDot} />
+              <Text style={styles.chatTitle}>Behavioral Synthesis</Text>
+            </View>
+            
+            <ScrollView style={styles.chatHistory} contentContainerStyle={{ gap: 12 }}>
+              {messages.map((m, i) => (
+                <MotiView 
+                  key={i} 
+                  from={{ opacity: 0, translateX: m.role === 'user' ? 10 : -10 }}
+                  animate={{ opacity: 1, translateX: 0 }}
+                  style={[styles.chatBubble, m.role === 'user' && styles.userBubble]}
+                >
+                  <Text style={[styles.chatBubbleText, m.role === 'user' && { color: '#FFF' }]}>{m.content}</Text>
+                </MotiView>
+              ))}
+              {isTyping && (
+                <Text style={styles.typingIndicator}>AI is thinking...</Text>
+              )}
+            </ScrollView>
+
+            <View style={styles.chatInputContainer}>
+              <TextInput 
+                placeholder="Ask about your patterns..."
+                placeholderTextColor={COLORS.textDim}
+                style={styles.chatInput}
+                value={chatInput}
+                onChangeText={setChatInput}
+                onSubmitEditing={handleSendMessage}
+              />
+              <TouchableOpacity style={styles.chatSendBtn} onPress={handleSendMessage}>
+                <Zap size={16} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </GlassCard>
+        </MotiView>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -197,5 +265,47 @@ const styles = StyleSheet.create({
   recCard: { padding: SPACING[6], borderRadius: RADIUS.xl, gap: SPACING[5], backgroundColor: COLORS.surfaceLight },
   recRow: { flexDirection: 'row', gap: SPACING[4], alignItems: 'flex-start' },
   recText: { ...TYPOGRAPHY.body, color: COLORS.textSecondary, fontSize: 14, lineHeight: 22, flex: 1 },
-  emptyText: { ...TYPOGRAPHY.body, color: COLORS.textDim, textAlign: 'center', paddingVertical: 20 }
+  emptyText: { ...TYPOGRAPHY.body, color: COLORS.textDim, textAlign: 'center', paddingVertical: 20 },
+
+  chatCard: { padding: SPACING[5], borderRadius: RADIUS.xl, backgroundColor: COLORS.surface },
+  chatHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING[4] },
+  activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' },
+  chatTitle: { ...TYPOGRAPHY.label, fontSize: 10, color: COLORS.textDim, letterSpacing: 1 },
+  chatBubble: {
+    backgroundColor: 'rgba(124, 140, 255, 0.05)',
+    padding: SPACING[4],
+    borderRadius: RADIUS.lg,
+    borderBottomLeftRadius: 0,
+    marginBottom: SPACING[6]
+  },
+  chatBubbleText: { ...TYPOGRAPHY.body, color: COLORS.text, fontSize: 14, lineHeight: 22 },
+  userBubble: {
+    backgroundColor: COLORS.primary,
+    alignSelf: 'flex-end',
+    borderBottomLeftRadius: RADIUS.lg,
+    borderBottomRightRadius: 0
+  },
+  chatHistory: { maxHeight: 300, marginBottom: SPACING[4] },
+  typingIndicator: { ...TYPOGRAPHY.caption, color: COLORS.textDim, fontStyle: 'italic', marginLeft: 4 },
+  chatInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING[3],
+    backgroundColor: '#F3F4F6',
+    borderRadius: RADIUS.full,
+    paddingLeft: SPACING[5],
+    paddingRight: SPACING[2],
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  chatInput: { flex: 1, color: COLORS.text, fontSize: 14 },
+  chatSendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
 });

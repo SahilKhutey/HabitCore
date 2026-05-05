@@ -1,11 +1,20 @@
 import json
 import logging
+import time
 from kafka import KafkaProducer
 from typing import Dict, Any, Optional
 
 from app.core.config import settings
+from app.utils.priority import PriorityQueue, calculate_priority
 
 logger = logging.getLogger(__name__)
+
+# Initialize PriorityQueue for nudge engine bridge
+try:
+    pq = PriorityQueue(redis_url=settings.REDIS_URL if hasattr(settings, "REDIS_URL") else "redis://localhost:6379")
+except Exception as e:
+    logger.error(f"Failed to initialize PriorityQueue: {e}")
+    pq = None
 
 class KafkaService:
     _producer: Optional[KafkaProducer] = None
@@ -23,40 +32,49 @@ class KafkaService:
                 )
                 logger.info("Kafka producer initialized successfully.")
             except Exception as e:
-                logger.error(f"Kafka connection failed: {e}")
+                # Silent failure for producer, we will use the Redis bridge
+                cls._producer = False # Mark as failed
                 return None
-        return cls._producer
+        return cls._producer if cls._producer is not False else None
 
     @classmethod
     def send_event(cls, topic: str, data: Dict[str, Any]):
-        """Asynchronously sends an event to a Kafka topic."""
+        """Asynchronously sends an event to a Kafka topic and bridges to Redis PQ if needed."""
+        # 1. Try Kafka
         producer = cls.get_producer()
-        if not producer:
-            logger.warning(f"Kafka producer unavailable. Skipping event for topic: {topic}")
-            return
-
-        try:
-            producer.send(topic, data)
-            # In high-throughput systems, we don't call flush() here.
-            # The producer handles batching and background delivery.
-            logger.info(f"Event sent to topic {topic}")
-        except Exception as e:
-            logger.error(f"Failed to send Kafka event: {e}")
+        if producer:
+            try:
+                producer.send(topic, data)
+                logger.info(f"Event sent to Kafka topic {topic}")
+            except Exception as e:
+                logger.error(f"Failed to send Kafka event: {e}")
+        
+        # 2. Bridge to Redis PriorityQueue for Nudge Engine
+        if pq and topic == "behavioral_events":
+            try:
+                # Calculate priority using the utility
+                priority = calculate_priority(data, data.get("context", {}))
+                pq.push("nudge", data, priority)
+                logger.info(f"Event bridged to Redis PriorityQueue for {data.get('user_id')}")
+            except Exception as e:
+                logger.error(f"Failed to bridge event to Redis: {e}")
 
     @classmethod
     def send_user_text_event(cls, user_id: str, text: str):
         """Sends user reflection text for NLP processing."""
         cls.send_event("user_text_events", {
             "user_id": user_id,
-            "text": text
+            "text": text,
+            "timestamp": time.time()
         })
 
     @classmethod
     def send_behavioral_event(cls, user_id: str, event_type: str, value: float = 1.0, metadata: Dict[str, Any] = None):
-        """Sends behavioral events for real-time pattern detection (Flink/Nudge Engine)."""
+        """Sends behavioral events for real-time pattern detection."""
         cls.send_event("behavioral_events", {
             "user_id": user_id,
             "event_type": event_type,
             "event_value": value,
-            "metadata": metadata or {}
+            "metadata": metadata or {},
+            "timestamp": time.time()
         })

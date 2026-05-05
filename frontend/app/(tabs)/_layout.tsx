@@ -58,7 +58,16 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Tab 4: Evolve — Avatar studio + Archetype */}
+      {/* Tab 4: Coach — AI Behavioral Assistant */}
+      <Tabs.Screen
+        name="coach"
+        options={{
+          title: 'Coach',
+          tabBarIcon: ({ color }) => <Brain size={24} color={color} />,
+        }}
+      />
+
+      {/* Tab 5: Evolve — Avatar studio + Archetype */}
       <Tabs.Screen
         name="studio"
         options={{
@@ -67,7 +76,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Tab 5: Profile */}
+      {/* Tab 6: Profile */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -77,7 +86,6 @@ export default function TabLayout() {
       />
 
       {/* Hidden screens */}
-      <Tabs.Screen name="coach" options={{ href: null }} />
       <Tabs.Screen name="shop" options={{ href: null }} />
     </Tabs>
   );

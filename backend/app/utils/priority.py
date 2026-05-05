@@ -59,8 +59,20 @@ class PriorityQueue:
             
         for bucket in order:
             key = self._get_key(queue_name, bucket)
-            # ZPOPMIN returns [ (value, score) ]
-            item = self.redis.zpopmin(key)
+            
+            # Weighted selection using ZPOPMIN with a manual fallback for Redis < 5.0
+            try:
+                item = self.redis.zpopmin(key)
+            except Exception as e:
+                # Manual ZPOPMIN implementation (Fetch + Remove)
+                # Note: This is not atomic without a Lua script, but acceptable for this demo
+                res = self.redis.zrange(key, 0, 0, withscores=True)
+                if res:
+                    self.redis.zrem(key, res[0][0])
+                    item = res
+                else:
+                    item = None
+            
             if item:
                 return json.loads(item[0][0])
                 
