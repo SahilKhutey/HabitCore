@@ -1,42 +1,41 @@
-# HabitCore V2.0 Component Manifest
+# HabitCore v2.0-Transcendence Component Manifest
 
-This manifest tracks all new services and files introduced in the Intelligence Pipeline (V2) update.
+This manifest tracks the final 23-phase evolution of the HabitCore ecosystem.
 
-## 1. Streaming & Infrastructure
-| Service | Path | Role |
-| :--- | :--- | :--- |
-| **Kafka Broker** | `docker-compose.yml` | Real-time event bus |
-| **Flink Job** | `streaming/flink/jobs/flink_job.py` | Stateful pattern detection |
-| **Producer** | `streaming/producer.py` | Event ingestion entry point |
-| **Consumer (DB/Redis)** | `streaming/event_consumer.py` | Syncing events to persistence |
-
-## 2. Real-Time Memory (Redis)
+## 1. Collective Mesh (Phase 16-17)
 | Component | Path | Role |
 | :--- | :--- | :--- |
-| **Context Manager** | `app/services/context_store/manager.py` | Redis orchestration |
-| **Redis Store** | `docker-compose.yml` | High-speed feature store |
+| **Synergy Engine** | `backend/app/core/synergy_orchestrator.py` | Multi-user alignment logic |
+| **Governance Hub** | `backend/app/api/routes/governance.py` | Consensus & Sovereignty control |
+| **Collaborative Lab** | `frontend/src/screens/simulation_lab.tsx` | Group-level protocol modeling |
 
-## 3. Intervention Engine
+## 2. Global Intelligence (Phase 18)
 | Component | Path | Role |
 | :--- | :--- | :--- |
-| **Nudge Engine** | `nudge_engine/app/main.py` | Real-time intervention service |
-| **Decision Logic** | `nudge_engine/app/decision.py` | Priority scoring & cooldowns |
-| **Templates** | `nudge_engine/app/templates.py` | Behavioral nudge variants |
+| **Global Map API** | `backend/app/api/routes/global_analytics.py` | Planetary flux telemetry |
+| **Impact Simulator** | `backend/app/services/societal_analyzer.py` | Long-term forecasting engine |
+| **Protocol Gateway** | `frontend/src/screens/protocol_gateway.tsx` | Planetary initiative portal |
 
-## 4. Real-Time API
+## 3. Custom Engineering (Phase 19)
 | Component | Path | Role |
 | :--- | :--- | :--- |
-| **Real-Time Engine** | `realtime_engine/app/main.py` | Instant feature access |
-| **Context Service** | `realtime_engine/app/context_service.py` | Sliding window management |
+| **Archetype Studio** | `frontend/src/screens/archetype_studio.tsx` | Identity engineering laboratory |
+| **Scripting Interface**| `frontend/src/screens/protocol_scripting.tsx` | Visual synaptic logic builder |
+| **Marketplace** | `frontend/src/screens/protocol_marketplace.tsx`| Community protocol exchange |
 
-## 5. NLP & Intelligence
+## 4. Neural Singularity (Phase 20-22)
 | Component | Path | Role |
 | :--- | :--- | :--- |
-| **NLP Microservice** | `nlp_service/app/main.py` | Cognitive signal extraction |
-| **Answer Intel** | `backend/app/services/reflection_engine/answer_intelligence.py` | Text-to-signal logic |
+| **Archival Vault** | `backend/app/core/archival_manager.py` | Eternal identity preservation |
+| **Temporal Sync** | `frontend/src/screens/temporal_sync.tsx` | 4D identity evolution visualizer |
+| **Divergence Tool** | `backend/app/services/potentiality_modeling.py`| Future outcome modeling |
 
-## 6. Updated Data Models
-| File | Changes |
-| :--- | :--- |
-| `intelligence_models.py` | Added `CognitiveSignal`, `Nudge`, `NudgeFeedback` |
-| `routes.py` | Integrated async Kafka streaming in `/respond` |
+## 5. Supreme Command (Phase 23)
+| Component | Path | Role |
+| :--- | :--- | :--- |
+| **System Console** | `frontend/src/screens/system_console.tsx` | Master administrative hub |
+| **Verification Portal**| `backend/app/api/routes/system_verification.py`| Phase 1-23 integrity audit |
+| **Handover Protocol** | `backend/app/core/handover_engine.py` | Autonomous transition control |
+
+---
+*HabitCore v2.0-Transcendence — All systems nominal. Sovereignty Locked.*

@@ -1,47 +1,38 @@
-# HabitCore Intelligence Pipeline (Version 2.0)
+# HabitCore Intelligence Pipeline (Version 2.0-Transcendence)
 
 ## Overview
-Version 2.0 transforms HabitCore from a static tracking application into a **Reactive Behavioral Intelligence Ecosystem**. It introduces real-time event streaming, stateful behavioral analysis, and autonomous intervention capabilities.
+Version 2.0-Transcendence transforms HabitCore from a personal tracking system into a **Planetary-Scale Behavioral Intelligence Ecosystem**. It integrates real-time event streaming, collective mesh engineering, and autonomous neural-link synchronization.
 
-## Key Architectural Upgrades
+## Layered Architecture
 
-### 1. Real-Time Streaming Infrastructure (Kafka)
-- **Purpose**: Decouples heavy NLP and behavioral analysis from the core API.
-- **Components**: 
-  - `behavioral_events`: High-throughput topic for raw behavioral signals.
-  - `patterns_stream`: Topic for high-confidence detected behavioral loops.
-  - `user_text_events`: Topic for raw user reflection text.
+### 1. Foundation: Personal Intelligence
+- **Core Engine**: Personal habit loops, identity archetypes, and ML-derived behavioral patterns.
+- **Context Store**: Redis-based sub-millisecond memory for individual behavioral states.
 
-### 2. Stateful Pattern Engine (Apache Flink)
-- **Purpose**: Detects complex behavioral patterns that unfold over time.
-- **Capabilities**:
-  - **Sliding Windows**: Tracks rolling distraction and focus metrics.
-  - **Stateful Detection**: Identifies "Avoidance Cycles" by tracking user state across multiple consecutive events.
+### 2. Synergy: Collective Mesh
+- **Neural Governance**: Secure control layer for group consensus, data sovereignty, and privacy management.
+- **Collective Dashboard**: Real-time visualization of team-wide behavioral alignment and harmony indices.
+- **Simulation Lab**: Laboratory for modeling group-level performance and drift risks.
 
-### 3. Behavioral Context Store (Redis)
-- **Purpose**: Sub-millisecond behavioral memory for the intervention layer.
-- **Features**:
-  - **Online Feature Store**: Maintains a "live" profile of user metrics (focus, distraction).
-  - **Behavior Flags**: Instant boolean signals for the decision engine.
-  - **Anti-Spam Protocol**: Redis-based cooldowns to prevent notification fatigue.
+### 3. Macro: Global Intelligence
+- **Global Map**: Planetary-scale visualization of behavioral flux and macro-harmony indices.
+- **Impact Analyzer**: Long-term (1-10 year) behavioral protocol forecasting and simulation.
+- **Protocol Gateway**: Portal for planetary-scale initiatives and sovereign synchronization.
 
-### 4. Reactive Nudge Engine (FastAPI)
-- **Purpose**: Autonomous decision-making and delivery of interventions.
-- **Logic**: 
-  - **Priority Scoring**: Context-aware selection of the most impactful nudge.
-  - **Intervention Types**: Interrupt, Redirect, Reflective, and Reinforcement.
+### 4. Transcendence: Neural Singularity
+- **Archival Vault**: High-fidelity storage for eternal identity snapshots and developmental branching.
+- **Temporal Synchronizer**: 4D modeling of identity evolution across past, present, and future timelines.
+- **Autonomous Handover**: The final transition to a self-sustaining, zero-defect operational state.
 
-### 5. Answer Intelligence (NLP Service)
-- **Purpose**: Extracting structured cognitive signals from messy human text.
-- **Output**: Detects emotions, cognitive distortions, and behavioral intents.
+## Advanced Interaction Layer
+- **Neural Gesture Engine**: Touchless, intent-based control mapping cognitive signatures to system actions.
+- **AR HUD Spec**: Spatial synaptic overlay for real-time, high-fidelity immersive nudges.
+- **Biometric Health Monitor**: Real-time tracking of neural-link stability and signal purity.
 
-## Deployment Stack
-Version 2.0 is fully containerized via `docker-compose.yml`:
-- **Kafka / Zookeeper**: Event backbone.
-- **Flink (Job/Task Manager)**: Stream processing.
-- **Redis**: Real-time memory.
-- **Nudge Engine**: Intervention service.
-- **Real-Time Engine**: Feature store API.
+## Technical Infrastructure
+- **Event Backbone**: Kafka-based high-throughput behavioral signal streaming.
+- **Processing**: Apache Flink for stateful pattern detection and real-time intervention logic.
+- **Security**: Zero-Knowledge sync protocols and Neural-Sovereign encryption.
 
 ---
-*Note: Version 1.0 architecture (Static CRUD & Basic Analytics) remains supported as the foundation for these real-time layers.*
+*HabitCore v2.0.0-Transcendence — The final frontier of behavioral engineering.*
